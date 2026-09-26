@@ -1,0 +1,342 @@
+<html lang="es" style="margin:0;padding:0;">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gacha+ | Series, Películas y Ranking GachaTubers</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#0F0A1A;--surface:#1A132C;--surface2:#241B3F;--text:#F3EFFF;--muted:#A89CC8;--accent:#A855F7;--accent-soft:rgba(168,85,247,.18);--accent2:#EC4899;--border:rgba(168,85,247,.25);--gold:#FBBF24;}
+body{background:var(--bg);color:var(--text);font-family:'Bricolage Grotesque',sans-serif;margin:0;overflow-x:hidden;}
+::-webkit-scrollbar{height:6px;width:8px;}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px;}
+.grad-text{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+/* SPLASH */
+#splash{position:fixed;inset:0;z-index:999;background:radial-gradient(circle at 50% 40%,#241B3F,#0F0A1A);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s ease,visibility .8s;}
+#splash.hide{opacity:0;visibility:hidden;}
+.splash-logo{font-size:clamp(48px,10vw,96px);font-weight:800;letter-spacing:.05em;animation:pulse 1.6s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.06);opacity:.85}}
+.splash-sub{margin-top:16px;font-size:18px;color:#C4B5FD;letter-spacing:.3em;text-transform:uppercase;animation:fadeUp 1s ease .4s both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.splash-bar{width:200px;height:3px;background:rgba(168,85,247,.2);border-radius:3px;margin-top:28px;overflow:hidden;}
+.splash-bar div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));animation:load 2.2s ease forwards;}
+@keyframes load{to{width:100%}}
+/* MENU HAMBURGUESA */
+#drawer{position:fixed;top:0;left:0;height:100%;width:280px;background:#150E26;z-index:60;transform:translateX(-100%);transition:transform .35s ease;box-shadow:4px 0 30px rgba(0,0,0,.5);padding:24px 0;}
+#drawer.open{transform:translateX(0);}
+#drawerOverlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:55;display:none;}
+#drawerOverlay.show{display:block;}
+.drawer-item{padding:14px 28px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s;border-left:3px solid transparent;}
+.drawer-item:hover{background:var(--accent-soft);border-left-color:var(--accent);color:#D8B4FE;}
+/* ROWS */
+.row-scroll{display:flex;gap:14px;overflow-x:auto;padding:8px 2px 16px;scroll-behavior:smooth;}
+.vcard{flex:0 0 auto;width:200px;border-radius:12px;overflow:hidden;background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:transform .25s,box-shadow .25s;}
+.vcard:hover{transform:scale(1.06);box-shadow:0 10px 30px rgba(168,85,247,.4);z-index:5;}
+.vcard img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;}
+.badge{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:12px;}
+.badge-new{background:var(--accent-soft);color:#D8B4FE;border:1px solid var(--accent);}
+.badge-top{background:rgba(251,191,36,.15);color:#FDE68A;border:1px solid #FBBF24;}
+/* RANKING */
+.rank-tab{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--muted);transition:all .2s;}
+.rank-tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;}
+.rank-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:10px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;transition:background .2s;}
+.rank-row:hover{background:var(--surface2);}
+.rank-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0;}
+.score-bar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;flex:1;overflow:hidden;}
+.score-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;}
+.movement{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0;}
+.move-new{background:rgba(34,197,94,.15);color:#4ADE80;border:1px solid #22C55E;}
+/* MODAL VIDEO */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:70;display:none;overflow-y:auto;backdrop-filter:blur(6px);}
+.player-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;}
+.player-iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+.controls-bar{position:absolute;bottom:0;left:0;right:0;padding:28px 14px 12px;background:linear-gradient(to top,rgba(0,0,0,.95),transparent);display:flex;align-items:center;gap:10px;flex-wrap:wrap;opacity:0;transition:opacity .25s;}
+.player-wrap:hover .controls-bar{opacity:1;}
+.ctrl-btn{background:transparent;border:0;color:#fff;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.ctrl-btn:hover{background:rgba(255,255,255,.15);}
+.seek-track{flex:1;min-width:100px;height:5px;background:rgba(255,255,255,.25);border-radius:3px;cursor:pointer;}
+.seek-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;width:0%;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:700;transition:transform .15s,opacity .2s;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text);transition:border-color .2s;}
+.btn-secondary:hover{border-color:var(--accent);}
+</style>
+</head>
+<body>
+
+<!-- ===== SPLASH ANIMACIÓN DE ENTRADA ===== -->
+<div id="splash">
+  <div class="splash-logo grad-text">Gacha+</div>
+  <div class="splash-sub">Bienvenido</div>
+  <div class="splash-bar"><div></div></div>
+</div>
+
+<!-- ===== MENÚ HAMBURGUESA ===== -->
+<div id="drawerOverlay" onclick="toggleDrawer()"></div>
+<nav id="drawer">
+  <div style="padding:0 28px 24px;border-bottom:1px solid var(--border);margin-bottom:12px;">
+    <div class="grad-text text-3xl font-extrabold">Gacha+</div>
+    <p style="color:var(--muted);font-size:12px;margin-top:4px;">Tu plataforma de contenido Gacha</p>
+  </div>
+  <div class="drawer-item" onclick="goSection('inicio')">🏠 Inicio</div>
+  <div class="drawer-item" onclick="goSection('series')">📺 Series</div>
+  <div class="drawer-item" onclick="goSection('peliculas')">🎬 Mini Películas</div>
+  <div class="drawer-item" onclick="goSection('eventos')">🏆 Eventos / Premios</div>
+  <div class="drawer-item" onclick="goSection('tutoriales')">📚 Tutoriales</div>
+  <div class="drawer-item" onclick="goSection('ranking')">📊 Ranking GachaTubers</div>
+  <div class="drawer-item" onclick="goSection('nuevos')">✨ Recién Lanzados</div>
+  <div style="position:absolute;bottom:20px;left:28px;right:28px;font-size:11px;color:var(--muted);">v3.0 · Conectado a Firebase</div>
+</nav>
+
+<!-- ===== HEADER ===== -->
+<header class="sticky top-0 z-40 bg-[#0F0A1A]/90 backdrop-blur-md border-b border-[rgba(168,85,247,.15)]">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+    <button onclick="toggleDrawer()" style="background:transparent;border:0;color:#fff;font-size:22px;cursor:pointer;width:40px;height:40px;border-radius:8px;" onmouseover="this.style.background='var(--accent-soft)'" onmouseout="this.style.background='transparent'">☰</button>
+    <span class="grad-text text-2xl font-extrabold cursor-pointer" onclick="goSection('inicio')">Gacha+</span>
+    <div style="margin-left:auto;"><input id="searchInput" placeholder="Buscar videos…" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:7px 16px;color:var(--text);font-size:13px;outline:none;width:160px;max-width:40vw;"></div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+  <!-- ===== HERO / BIENVENIDA + VIDEO DECORATIVO ===== -->
+  <section id="inicio" class="relative rounded-2xl overflow-hidden mb-10 border border-[rgba(168,85,247,.2)]" style="background:linear-gradient(135deg,#241B3F,#150E26);">
+    <div class="md:flex items-center gap-8 p-6 md:p-10">
+      <div class="md:w-1/2 space-y-4">
+        <span class="badge badge-new">✨ Bienvenido</span>
+        <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">Disfruta de series, <span class="grad-text">películas</span> y más</h1>
+        <p class="text-[#A89CC8] text-lg">Todo el contenido de la comunidad Gacha en un solo lugar. Series originales, mini películas, tutoriales, eventos en vivo y el ranking oficial de GachaTubers.</p>
+        <div class="flex gap-3 pt-2 flex-wrap">
+          <button class="btn-primary px-6 py-3 rounded-lg text-base" onclick="openPlayer('xELtFgg3-Gc','Gacha People Awards 25/26 | Tráiler Oficial')">▶ Ver destacado</button>
+          <button class="btn-secondary px-6 py-3 rounded-lg text-base" onclick="goSection('ranking')">📊 Ver ranking</button>
+        </div>
+      </div>
+      <div class="md:w-1/2 mt-6 md:mt-0 cursor-pointer" onclick="openPlayer('xELtFgg3-Gc','Gacha People Awards 25/26 | Tráiler Oficial')">
+        <div class="relative rounded-xl overflow-hidden shadow-2xl group">
+          <img src="https://i.ytimg.com/vi/xELtFgg3-Gc/hqdefault.jpg" class="w-full aspect-video object-cover" style="filter:saturate(1.2);">
+          <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition-all">
+            <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;box-shadow:0 0 40px rgba(168,85,247,.6);">▶</div>
+          </div>
+        </div>
+        <p class="text-sm text-[#A89CC8] mt-2 text-center">▶ Reproduce el video destacado</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== RECIÉN LANZADOS ===== -->
+  <section id="nuevos" class="mb-10">
+    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><span class="badge badge-new">Nuevo</span> Recién Lanzados</h2>
+    <div class="row-scroll" id="nuevosRow"></div>
+  </section>
+
+  <!-- ===== MÁS VISTOS ===== -->
+  <section class="mb-10">
+    <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><span class="badge badge-top">#Top</span> Más Vistos</h2>
+    <div class="row-scroll" id="topRow"></div>
+  </section>
+
+  <!-- ===== SERIES ===== -->
+  <section id="series" class="mb-10">
+    <h2 class="text-xl font-bold mb-4">📺 Series Originales</h2>
+    <div class="row-scroll" id="seriesRow"></div>
+  </section>
+
+  <!-- ===== MINI PELÍCULAS ===== -->
+  <section id="peliculas" class="mb-10">
+    <h2 class="text-xl font-bold mb-4">🎬 Mini Películas</h2>
+    <div class="row-scroll" id="moviesRow"></div>
+  </section>
+
+  <!-- ===== TUTORIALES ===== -->
+  <section id="tutoriales" class="mb-10">
+    <h2 class="text-xl font-bold mb-4">📚 Tutoriales y Guías</h2>
+    <div class="row-scroll" id="tutosRow"></div>
+  </section>
+
+  <!-- ===== EVENTOS ===== -->
+  <section id="eventos" class="mb-10">
+    <h2 class="text-xl font-bold mb-4">🏆 Eventos y Premios</h2>
+    <div class="row-scroll" id="eventosRow"></div>
+  </section>
+
+  <!-- ===== RANKING GACHATUBERS ===== -->
+  <section id="ranking" class="mb-10">
+    <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
+      <h2 class="text-2xl font-extrabold">🏆 <span class="grad-text">Ranking Gacha+</span></h2>
+      <button class="btn-secondary px-4 py-2 rounded-lg text-sm" onclick="refreshRanking()">🔄 Actualizar ahora</button>
+    </div>
+    <p class="text-sm text-[#A89CC8] mb-4">Estilo FIFA / Spotify Charts · Puntaje 1–100 basado en vistas, likes, actividad y crecimiento · <span id="rankDate">Hoy</span></p>
+    <div class="flex gap-2 flex-wrap mb-5">
+      <div class="rank-tab active" data-tab="tubers-dia" onclick="switchTab(this)">Top GachaTubers · Diario</div>
+      <div class="rank-tab" data-tab="tubers-semana" onclick="switchTab(this)">Top GachaTubers · Semanal</div>
+      <div class="rank-tab" data-tab="videos-dia" onclick="switchTab(this)">Top Videos · Diario</div>
+      <div class="rank-tab" data-tab="videos-semana" onclick="switchTab(this)">Top Videos · Semanal</div>
+    </div>
+    <div id="rankList"></div>
+  </section>
+</main>
+
+<footer style="border-top:1px solid var(--border);padding:30px 24px 40px;text-align:center;">
+  <p class="grad-text text-2xl font-extrabold mb-2">Gacha+</p>
+  <p class="text-[#A89CC8] text-sm max-w-lg mx-auto">Videos embebidos desde YouTube · Ranking con datos reales · Base de datos Firebase</p>
+</footer>
+
+<!-- ===== MODAL DE VIDEO (con descripción + recomendados) ===== -->
+<div id="videoModal" class="modal-backdrop">
+  <div class="max-w-5xl mx-auto px-4 py-8" id="videoModalContent"></div>
+</div>
+
+<script>
+// ===== FIREBASE =====
+const firebaseConfig = {apiKey:"AIzaSyC3SnIZxQjfcFtaSylPnsGDe0eSZd6-7rY",authDomain:"gachaplus-14fba.firebaseapp.com",projectId:"gachaplus-14fba",storageBucket:"gachaplus-14fba.firebasestorage.app",messagingSenderId:"1014725904149",appId:"1:1014725904149:web:c4f118784d12d77e7c4b1c"};
+let db=null;
+try{firebase.initializeApp(firebaseConfig);db=firebase.firestore();}catch(e){console.log("Firebase no disponible:",e);}
+
+// ===== SPLASH =====
+setTimeout(()=>{document.getElementById('splash').classList.add('hide');},2600);
+
+// ===== MENÚ HAMBURGUESA =====
+function toggleDrawer(){document.getElementById('drawer').classList.toggle('open');document.getElementById('drawerOverlay').classList.toggle('show');}
+function goSection(id){toggleDrawer();if(document.getElementById('drawer').classList.contains('open'))return;document.getElementById(id)?.scrollIntoView({behavior:'smooth'});}
+
+// ===== DATOS DE CONTENIDO =====
+const CONTENIDO = {
+  nuevos:[{id:"t8uoYlC0twY",t:"¡TU OC PUEDE SALIR EN LOS PREMIOS! + Predicciones",c:"GPA 25/26"},{id:"Dz0oqcyWJts",t:"Video Del Año | Nominados",c:"GPA 25/26"},{id:"hJdiIkNyBJU",t:"GachaTuber Masculino Del Año",c:"GPA 25/26"},{id:"mUmyGSrUgUw",t:"GachaTuber Femenina Del Año",c:"GPA 25/26"},{id:"bjo-NB3MuTE",t:"GachaTuber De Series Del Año",c:"GPA 25/26"},{id:"Wf0iYfzoPsQ",t:"GachaTuber De Mini Películas",c:"GPA 25/26"}],
+  top:[{id:"RX8kvi_HFxk",t:"How to IMPROVE Your Gacha Series",c:"Guía · 4.6K vistas"},{id:"xELtFgg3-Gc",t:"GPA 25/26 | Tráiler Oficial",c:"Evento · 4.4K"},{id:"l__E3HY_l88",t:"GachaTuber Del Año | GPA",c:"Premios · 3.4K"},{id:"yxAMfDYSj4Y",t:"¡GRAN FINAL! La Casa De Los GachaTubers",c:"Serie · 1.4K"},{id:"t8uoYlC0twY",t:"¡TU OC PUEDE SALIR EN LOS PREMIOS!",c:"Evento · 1.4K"}],
+  series:[{id:"rEuHGfvv5vg",t:"Ep.1 ¡PRIMERA ELIMINACIÓN! | La Casa De Los GachaTubers",c:"Serie Original"},{id:"awlgXuq99XM",t:"Ep.2 ¡SEGUNDA ELIMINACIÓN!",c:"Serie Original"},{id:"9jFGkYoFVyc",t:"Ep.3 Eliminación doble",c:"Serie Original"},{id:"yxAMfDYSj4Y",t:"¡GRAN FINAL! Temporada 1",c:"Serie Original"},{id:"2ErGZJNF_c4",t:"Sueños Extraños | Ep.4 T.2",c:"Serie Original"}],
+  movies:[{id:"xELtFgg3-Gc",t:"GPA 25/26 | Tráiler Oficial",c:"Especial"},{id:"Pi4jP0guQS8",t:"Gacha People Awards 24/25 | Evento Completo",c:"Mini película"},{id:"jHzgg0-kSA4",t:"Purple Carpet · 3rd GPA",c:"Especial"}],
+  tutos:[{id:"qsisD5YPnH0",t:"How to Start on YouTube as GachaTuber",c:"Tutorial"},{id:"RX8kvi_HFxk",t:"How to IMPROVE Your Gacha Series",c:"Guía"},{id:"Eg76Q2QZEZo",t:"8 Cosas Que No Debes Hacer Siendo GachaTuber",c:"Tutorial"}],
+  eventos:[{id:"xELtFgg3-Gc",t:"GPA 25/26 | Tráiler Oficial",c:"Premios"},{id:"t8uoYlC0twY",t:"¡TU OC PUEDE SALIR EN LOS PREMIOS!",c:"GPA 25/26"},{id:"G4esK6vZaB8",t:"Recomienda GachaTubers del Año",c:"GPA"},{id:"y7Jh9rh9WEo",t:"Entrevista Exclusiva con Nyala Chan",c:"GachaTub"}]
+};
+
+// ===== RANKING REAL (datos recolectados) =====
+const RANK_TUBERS = [
+  {name:"Jazmín_Studios♡",score:98.0,subs:"~200K",views:"1.53M"},
+  {name:"Euni (Eunice_mha)",score:75.7,subs:"130K",views:"882K"},
+  {name:"Emy! ᐛ ) 💕",score:69.7,subs:"869K",views:"633K"},
+  {name:"Valeria Gtz",score:62.1,subs:"~80K",views:"654K"},
+  {name:"Soy Tote",score:48.7,subs:"178K",views:"316K"},
+  {name:"Gene Pop",score:40.7,subs:"217K",views:"159K"},
+  {name:"YUNA_KI",score:28.4,subs:"4.5K",views:"27K"},
+  {name:"Anyme Wolf",score:19.0,subs:"725",views:"60K"},
+  {name:"Cristalis Diamonds",score:12.4,subs:"1.4K",views:"2K"},
+  {name:"KaLeB",score:1.8,subs:"3.8K",views:"35K"},
+  {name:"aBe",score:0.4,subs:"12.8K",views:"—"},
+  {name:"GachaLife's World",score:0.1,subs:"259",views:"2K"}
+];
+const RANK_VIDEOS = [
+  {name:"Medio litro de té frío",author:"Euni",views:"397K",score:98},
+  {name:"Hey mom | GL2",author:"Jazmín_Studios",views:"360K",score:89},
+  {name:"🏃‍♀️ #gacha #animation",author:"Jazmín_Studios",views:"336K",score:83},
+  {name:"Unstable Little Mermaid",author:"Jazmín_Studios",views:"328K",score:81},
+  {name:"#jackstauber animation",author:"Jazmín_Studios",views:"328K",score:80},
+  {name:"Uuf estas Barbies 😝",author:"Euni",views:"252K",score:62},
+  {name:"Vitamina trend | Alight",author:"Emy!",views:"233K",score:57},
+  {name:"El futuro de Japón",author:"Emy!",views:"210K",score:52},
+  {name:"Isabella y Caleb…",author:"Valeria Gtz",views:"205K",score:50},
+  {name:"Llamada🗣📱 #gacha",author:"Jazmín_Studios",views:"180K",score:44}
+];
+
+// ===== RENDER CARDS =====
+function cardHTML(v){return `<div class="vcard" onclick="openVideoModal('${v.id}','${v.t.replace(/'/g,"\\'")}','${v.c}')"><img src="https://i.ytimg.com/vi/${v.id}/hqdefault.jpg" loading="lazy" onerror="this.style.display='none'"><div style="padding:10px;"><p style="font-size:13px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${v.t}</p><p style="font-size:11px;color:#A89CC8;margin-top:4px;">${v.c}</p></div></div>`;}
+document.getElementById('nuevosRow').innerHTML = CONTENIDO.nuevos.map(cardHTML).join('');
+document.getElementById('topRow').innerHTML = CONTENIDO.top.map(cardHTML).join('');
+document.getElementById('seriesRow').innerHTML = CONTENIDO.series.map(cardHTML).join('');
+document.getElementById('moviesRow').innerHTML = CONTENIDO.movies.map(cardHTML).join('');
+document.getElementById('tutosRow').innerHTML = CONTENIDO.tutos.map(cardHTML).join('');
+document.getElementById('eventosRow').innerHTML = CONTENIDO.eventos.map(cardHTML).join('');
+
+// ===== RANKING TABS =====
+let currentTab='tubers-dia';
+function switchTab(el){document.querySelectorAll('.rank-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');currentTab=el.dataset.tab;renderRank();}
+function renderRank(){
+  const isVideos = currentTab.startsWith('videos');
+  const data = isVideos ? RANK_VIDEOS : RANK_TUBERS;
+  const colors=['#FBBF24','#C084FC','#F472B6'];
+  document.getElementById('rankList').innerHTML = data.map((r,i)=>{
+    const numColor = i<3 ? colors[i] : 'var(--surface2)';
+    const numText = i<3 ? '#0F0A1A' : '#F3EFFF';
+    const score = r.score;
+    return `<div class="rank-row">
+      <div class="rank-num" style="background:${numColor};color:${numText};">${i+1}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.name}</div>
+        <div style="font-size:11px;color:#A89CC8;">${r.author?r.author+' · ':''}${r.subs?r.subs+' suscriptores · ':''}${r.views?r.views+' vistas':''}</div>
+      </div>
+      <div class="score-bar" style="max-width:140px;"><div class="score-fill" style="width:${score}%;"></div></div>
+      <div style="font-weight:800;font-size:18px;min-width:45px;text-align:right;" class="grad-text">${score}</div>
+      <span class="movement move-new">NUEVO</span>
+    </div>`;
+  }).join('');
+}
+renderRank();
+
+// ===== FIREBASE: guardar/leer snapshot =====
+function refreshRanking(){
+  const now = new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('rankDate').textContent = 'Actualizado: '+now;
+  if(db){
+    db.collection('ranking').doc('snapshot').set({fecha:now,tubers:RANK_TUBERS,videos:RANK_VIDEOS}).then(()=>{console.log('Ranking guardado en Firebase');}).catch(e=>console.log('Error guardando:',e));
+  }
+}
+if(db){
+  db.collection('ranking').doc('snapshot').get().then(d=>{
+    if(d.exists){document.getElementById('rankDate').textContent='Actualizado: '+d.data().fecha;}
+  }).catch(()=>{});
+}
+
+// ===== MODAL DE VIDEO (descripción + recomendados) =====
+function openVideoModal(id,title,cat){
+  const modal=document.getElementById('videoModal');
+  const recs = [...CONTENIDO.nuevos,...CONTENIDO.top].filter(v=>v.id!==id).slice(0,4);
+  document.getElementById('videoModalContent').innerHTML=`
+    <button onclick="closeVideoModal()" style="position:fixed;top:16px;right:16px;z-index:80;background:rgba(0,0,0,.7);border:1px solid var(--border);color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;">✕</button>
+    <div class="player-wrap" id="pWrap">
+      <div id="ytPlayer" class="player-iframe"></div>
+      <div class="controls-bar">
+        <div class="seek-track" id="seekTrack"><div class="seek-fill" id="seekFill"></div></div>
+        <span style="font-size:12px;color:#ddd;min-width:90px;" id="timeTxt">0:00 / 0:00</span>
+        <button class="ctrl-btn" onclick="player&&player.seekTo(Math.max(0,player.getCurrentTime()-10),true)">⏮</button>
+        <button class="ctrl-btn" id="btnPlay" onclick="togglePlay()">▶</button>
+        <button class="ctrl-btn" onclick="player&&player.seekTo(player.getCurrentTime()+10,true)">⏭</button>
+        <button class="ctrl-btn" onclick="fullscreenPlayer()">⛶</button>
+      </div>
+    </div>
+    <div style="margin-top:20px;">
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:8px;">${title}</h2>
+      <p style="color:#A89CC8;font-size:14px;margin-bottom:16px;">${cat} · Reproduciendo desde YouTube (las visitas cuentan para el canal)</p>
+      <p style="font-size:15px;line-height:1.7;color:#D4CDE8;max-width:720px;">Disfruta de este contenido de Gacha+. No olvides darle like, suscribirte y activar la campanita para no perderte los próximos lanzamientos. Este video se reproduce directamente desde el canal oficial.</p>
+    </div>
+    <h3 style="font-size:18px;font-weight:700;margin:28px 0 14px;">🎬 Videos recomendados</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+      ${recs.map(r=>`<div class="vcard" style="width:100%;" onclick="closeVideoModal();setTimeout(()=>openVideoModal('${r.id}','${r.t.replace(/'/g,"\\'")}','${r.c}'),200)"><img src="https://i.ytimg.com/vi/${r.id}/hqdefault.jpg" loading="lazy"><div style="padding:10px;"><p style="font-size:13px;font-weight:600;line-height:1.3;">${r.t}</p></div></div>`).join('')}
+    </div>`;
+  modal.style.display='block';document.body.style.overflow='hidden';
+  openPlayerInline(id);
+}
+function closeVideoModal(){document.getElementById('videoModal').style.display='none';document.body.style.overflow='auto';try{player&&player.destroy();}catch(e){}player=null;}
+
+// ===== REPRODUCTOR =====
+let player=null,poll=null;
+function openPlayer(id,title){openVideoModal(id,title,'Destacado');}
+function openPlayerInline(id){
+  if(typeof YT!=='undefined'&&YT.Player){initP(id);}else{window._pv={id:id};}
+}
+window.onYouTubeIframeAPIReady=function(){if(window._pv){initP(window._pv.id);window._pv=null;}};
+function initP(id){
+  try{player&&player.destroy();}catch(e){}
+  player=new YT.Player('ytPlayer',{width:'100%',height:'100%',videoId:id,playerVars:{controls:0,modestbranding:1,rel:0,playsinline:1,autoplay:1},
+    events:{onReady:()=>{startPoll();},onStateChange:(e)=>{document.getElementById('btnPlay').textContent=e.data===1?'⏸':'▶';}}});
+}
+function togglePlay(){if(!player)return;player.getPlayerState()===1?player.pauseVideo():player.playVideo();}
+function startPoll(){stopPoll();poll=setInterval(()=>{if(!player||!player.getCurrentTime)return;const c=player.getCurrentTime(),d=player.getDuration()||0;if(d>0){document.getElementById('seekFill').style.width=(c/d*100)+'%';document.getElementById('timeTxt').textContent=fmt(c)+' / '+fmt(d);}},500);}
+function stopPoll(){if(poll)clearInterval(poll);}
+function fmt(s){s=Math.floor(s||0);const m=Math.floor(s/60);return m+':'+String(s%60).padStart(2,'0');}
+document.addEventListener('click',e=>{const t=e.target.closest('#seekTrack');if(t&&player){const r=t.getBoundingClientRect();player.seekTo(((e.clientX-r.left)/r.width)*player.getDuration(),true);}});
+function fullscreenPlayer(){const w=document.getElementById('pWrap');if(w&&w.requestFullscreen)w.requestFullscreen();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeVideoModal();});
+</script>
+</body>
+</html>
