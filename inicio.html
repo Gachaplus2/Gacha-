@@ -1,0 +1,54 @@
+<!-- === PÁGINA DE INICIO === -->
+<div class="relative rounded-2xl overflow-hidden mb-10 border border-[rgba(168,85,247,.2)]" style="background:linear-gradient(135deg,#241B3F,#150E26);">
+  <div class="md:flex items-center gap-8 p-6 md:p-10">
+    <div class="md:w-1/2 space-y-4">
+      <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">✨ Bienvenido</span>
+      <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">¡Hola! 👋 <span class="grad-text">Disfruta de Gacha+</span></h1>
+      <p class="text-[#A89CC8] text-lg">Explora series, mini películas, tutoriales y el ranking de GachaTubers. <strong>Inicia sesión para ver todo el contenido 🔐</strong></p>
+      <div class="flex gap-3 pt-2 flex-wrap">
+        <button class="btn-primary px-6 py-3 rounded-lg text-base" onclick="openAuthModal()">🔑 Iniciar Sesión</button>
+        <button class="btn-secondary px-6 py-3 rounded-lg text-base" onclick="irAPagina('ranking')">🏆 Ver Ranking</button>
+      </div>
+    </div>
+    <div class="md:w-1/2 mt-6 md:mt-0 cursor-pointer" onclick="if(!currentUser){openAuthModal();return;} alert('Aquí iría el video');">
+      <div class="relative rounded-xl overflow-hidden shadow-2xl group">
+        <img src="https://i.ytimg.com/vi/xELtFgg3-Gc/hqdefault.jpg" class="w-full aspect-video object-cover">
+        <div class="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/10 transition-all">
+          <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;box-shadow:0 0 40px rgba(168,85,247,.6);">▶</div>
+        </div>
+        <div class="lock-overlay">
+          <span class="lock-icon">🔒</span>
+          <span class="lock-text">Inicia sesión para ver</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 class="text-xl font-bold mb-4">🔥 Recomendados para ti</h2>
+<div class="row-scroll">
+  <div class="vcard" onclick="if(!currentUser){openAuthModal();return;} alert('Reproducir video');">
+    <img src="https://i.ytimg.com/vi/xELtFgg3-Gc/hqdefault.jpg" alt="Video">
+    <div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div>
+    <div style="padding:10px;">
+      <p style="font-size:13px;font-weight:600;">GPA 25/26 | Tráiler Oficial</p>
+      <p style="font-size:11px;color:#A89CC8;margin-top:4px;">Evento</p>
+    </div>
+  </div>
+  <div class="vcard" onclick="if(!currentUser){openAuthModal();return;} alert('Reproducir video');">
+    <img src="https://i.ytimg.com/vi/t8uoYlC0twY/hqdefault.jpg" alt="Video">
+    <div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div>
+    <div style="padding:10px;">
+      <p style="font-size:13px;font-weight:600;">¡TU OC PUEDE SALIR EN LOS PREMIOS!</p>
+      <p style="font-size:11px;color:#A89CC8;margin-top:4px;">GPA 25/26</p>
+    </div>
+  </div>
+  <div class="vcard" onclick="if(!currentUser){openAuthModal();return;} alert('Reproducir video');">
+    <img src="https://i.ytimg.com/vi/RX8kvi_HFxk/hqdefault.jpg" alt="Video">
+    <div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div>
+    <div style="padding:10px;">
+      <p style="font-size:13px;font-weight:600;">How to IMPROVE Your Gacha Series</p>
+      <p style="font-size:11px;color:#A89CC8;margin-top:4px;">Guía</p>
+    </div>
+  </div>
+</div>
