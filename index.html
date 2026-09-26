@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gacha+ | Comunidad Gacha</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#0F0A1A;--surface:#1A132C;--surface2:#241B3F;--text:#F3EFFF;--muted:#A89CC8;--accent:#A855F7;--accent-soft:rgba(168,85,247,.18);--accent2:#EC4899;--border:rgba(168,85,247,.25);--error:#EF4444;--success:#22C55E;}
+body{background:var(--bg);color:var(--text);font-family:'Bricolage Grotesque',sans-serif;margin:0;overflow-x:hidden;}
+.grad-text{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:700;transition:all .2s;border:none;cursor:pointer;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 8px 20px rgba(168,85,247,.35);}
+.btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text);transition:all .2s;cursor:pointer;}
+.btn-secondary:hover{border-color:var(--accent);background:var(--accent-soft);}
+.input-field{background:var(--surface);border:1px solid var(--border);color:var(--text);transition:border-color .2s,box-shadow .2s;}
+.input-field:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(168,85,247,.15);}
+.card{background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(10px);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .5s ease forwards;}
+.scale-in{animation:fadeIn .4s ease forwards;}
+
+/* === SPLASH === */
+#splash{position:fixed;inset:0;z-index:999;background:radial-gradient(circle at 50% 40%,#241B3F,#0F0A1A);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s ease,visibility .4s;}
+#splash.hide{opacity:0;visibility:hidden;pointer-events:none;}
+.splash-logo{font-size:clamp(48px,10vw,96px);font-weight:800;letter-spacing:.05em;animation:pulse 1.6s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.06);opacity:.85}}
+.splash-sub{margin-top:16px;font-size:18px;color:#C4B5FD;letter-spacing:.3em;text-transform:uppercase;}
+
+/* === MENÚ LATERAL === */
+#drawer{position:fixed;top:0;left:0;height:100%;width:280px;background:#150E26;z-index:60;transform:translateX(-100%);transition:transform .3s ease;box-shadow:4px 0 30px rgba(0,0,0,.5);padding:24px 0;}
+#drawer.open{transform:translateX(0);}
+#drawerOverlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:55;display:none;backdrop-filter:blur(4px);}
+#drawerOverlay.show{display:block;}
+.drawer-item{padding:14px 28px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s;border-left:3px solid transparent;}
+.drawer-item:hover{background:var(--accent-soft);border-left-color:var(--accent);color:#D8B4FE;}
+
+/* === TARJETAS Y BLOQUEO === */
+.row-scroll{display:flex;gap:14px;overflow-x:auto;padding:8px 2px 16px;scroll-behavior:smooth;}
+.vcard{flex:0 0 auto;width:200px;border-radius:12px;overflow:hidden;background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:all .25s;position:relative;}
+.vcard:hover{transform:scale(1.05);box-shadow:0 10px 30px rgba(168,85,247,.3);}
+.vcard img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;}
+.lock-overlay{position:absolute;inset:0;background:rgba(15,10,26,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;z-index:10;backdrop-filter:blur(2px);}
+.lock-icon{font-size:32px;margin-bottom:4px;}
+.lock-text{font-size:12px;font-weight:600;color:#C4B5FD;}
+
+/* === MODAL === */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:70;display:none;overflow-y:auto;backdrop-filter:blur(8px);}
+.modal-backdrop.show{display:block;animation:fadeIn .3s ease forwards;}
+.modal-content{transform:scale(.9);opacity:0;transition:all .3s ease;}
+.modal-backdrop.show .modal-content{transform:scale(1);opacity:1;}
+
+/* === ALERTAS === */
+.alert{border-radius:10px;padding:12px 16px;margin-bottom:16px;font-weight:500;}
+.alert-error{background:rgba(239,68,68,.1);border:1px solid var(--error);color:#FCA5A5;}
+.alert-success{background:rgba(34,197,94,.1);border:1px solid var(--success);color:#86EFAC;}
+.hidden{display:none !important;}
+::-webkit-scrollbar{height:6px;width:8px;}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- === SPLASH === -->
+<div id="splash">
+  <div class="splash-logo grad-text">Gacha+</div>
+  <div class="splash-sub">CARGANDO...</div>
+</div>
+
+<!-- === FIREBASE === -->
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC3SnIZxQjfcFtaSylPnsGDe0eSZd6-7rY",
+  authDomain: "gachaplus-14fba.firebaseapp.com",
+  projectId: "gachaplus-14fba",
+  storageBucket: "gachaplus-14fba.firebasestorage.app",
+  messagingSenderId: "1014725904149",
+  appId: "1:1014725904149:web:c4f118784d12d77e7c4b1c"
+};
+let app;
+try { app = firebase.initializeApp(firebaseConfig); }
+catch(e){ if(!/already exists/.test(e.message)) console.error('Firebase:',e); }
+const auth = firebase.auth();
+const db = firebase.firestore();
+const provider = new firebase.auth.GoogleAuthProvider();
+let currentUser = null;
+</script>
+
+<!-- === MODAL DE INICIO DE SESIÓN / REGISTRO === -->
+<div id="authModal" class="modal-backdrop">
+  <div class="max-w-md mx-auto px-4 py-12 relative modal-content">
+    <div class="card rounded-2xl p-8 w-full scale-in">
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-2xl hover:text-purple-400 transition-colors">✕</button>
+      <div class="text-center mb-8 mt-4">
+        <h1 class="text-4xl font-extrabold grad-text mb-2">Gacha+</h1>
+        <p class="text-[#A89CC8]">Inicia sesión o regístrate para ver todo el contenido 🔐</p>
+      </div>
+      <div class="flex mb-8 rounded-lg bg-[var(--surface2)] p-1">
+        <button id="tabLogin" class="flex-1 py-2 rounded-md font-semibold text-sm transition-all bg-[var(--accent)] text-white" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+        <button id="tabRegister" class="flex-1 py-2 rounded-md font-semibold text-sm transition-all text-[var(--muted)]" onclick="switchAuthTab('register')">Registrarse</button>
+      </div>
+      <div id="authAlert"></div>
+      
+      <!-- Login -->
+      <form id="loginForm" class="space-y-4">
+        <div><label class="block text-sm font-semibold mb-1">Correo electrónico</label><input type="email" id="loginEmail" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <div><label class="block text-sm font-semibold mb-1">Contraseña</label><input type="password" id="loginPass" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <button type="submit" class="btn-primary w-full py-3 rounded-lg text-lg">🔑 Entrar</button>
+        <div class="relative my-6"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-[var(--border)]"></div></div><div class="relative flex justify-center"><span class="px-4 bg-[var(--surface)] text-[var(--muted)] text-sm">o continúa con</span></div></div>
+        <button type="button" onclick="signInWithGoogle()" class="btn-secondary w-full py-3 rounded-lg flex items-center justify-center gap-3">
+          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continuar con Google
+        </button>
+      </form>
+      
+      <!-- Registro -->
+      <form id="registerForm" class="space-y-4 hidden">
+        <div><label class="block text-sm font-semibold mb-1">Nombre de usuario</label><input type="text" id="regName" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <div><label class="block text-sm font-semibold mb-1">Correo electrónico</label><input type="email" id="regEmail" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <div><label class="block text-sm font-semibold mb-1">Contraseña (mínimo 6 caracteres)</label><input type="password" id="regPass" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <div><label class="block text-sm font-semibold mb-1">Confirmar contraseña</label><input type="password" id="regPass2" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <button type="submit" class="btn-primary w-full py-3 rounded-lg text-lg">📝 Crear cuenta</button>
+        <div class="relative my-6"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-[var(--border)]"></div></div><div class="relative flex justify-center"><span class="px-4 bg-[var(--surface)] text-[var(--muted)] text-sm">o continúa con</span></div></div>
+        <button type="button" onclick="signInWithGoogle()" class="btn-secondary w-full py-3 rounded-lg flex items-center justify-center gap-3">
+          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continuar con Google
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- === MENÚ LATERAL Y CABECERA === -->
+<div id="drawerOverlay" onclick="toggleDrawer()"></div>
+<nav id="drawer">
+  <div style="padding:0 28px 24px;border-bottom:1px solid var(--border);margin-bottom:12px;">
+    <div class="grad-text text-3xl font-extrabold">Gacha+</div>
+    <p style="color:var(--muted);font-size:12px;margin-top:4px;" id="userEmailDisplay"></p>
+  </div>
+  <div class="drawer-item" onclick="irAPagina('inicio')">🏠 Inicio</div>
+  <div class="drawer-item" onclick="irAPagina('series')">📺 Series</div>
+  <div class="drawer-item" onclick="irAPagina('peliculas')">🎬 Mini Películas</div>
+  <div class="drawer-item" onclick="irAPagina('tutoriales')">📚 Tutoriales</div>
+  <div class="drawer-item" onclick="irAPagina('eventos')">🏆 Eventos</div>
+  <div class="drawer-item" onclick="irAPagina('ranking')">📊 Ranking GachaTubers</div>
+  <div style="position:absolute;bottom:20px;left:28px;right:28px;">
+    <button id="logoutBtn" onclick="logout()" class="btn-secondary w-full py-2 rounded-lg text-sm text-red-400 border-red-500/30 hover:border-red-400 hover:bg-red-500/10 hidden">🚪 Cerrar sesión</button>
+  </div>
+</nav>
+
+<header class="sticky top-0 z-40 bg-[#0F0A1A]/90 backdrop-blur-md border-b border-[rgba(168,85,247,.15)]">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+    <button onclick="toggleDrawer()" style="background:transparent;border:0;color:#fff;font-size:22px;cursor:pointer;width:40px;height:40px;border-radius:8px;" onmouseover="this.style.background='var(--accent-soft)'" onmouseout="this.style.background='transparent'">☰</button>
+    <span class="grad-text text-2xl font-extrabold cursor-pointer" onclick="irAPagina('inicio')">Gacha+</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+      <button id="loginHeaderBtn" onclick="openAuthModal()" class="btn-primary px-4 py-2 rounded-lg text-sm">🔑 Iniciar Sesión</button>
+      <span id="userNameDisplay" class="text-sm font-semibold text-[var(--muted)] hidden sm:inline"></span>
+      <div id="userAvatar" class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm cursor-pointer hidden" onclick="toggleDrawer()"></div>
+    </div>
+  </div>
+</header>
+
+<!-- === CONTENEDOR DONDE CARGA CADA PÁGINA === -->
+<main id="contenido" class="max-w-7xl mx-auto px-4 py-6"></main>
+
+<!-- === PIE DE PÁGINA === -->
+<footer style="border-top:1px solid var(--border);padding:30px 24px 40px;text-align:center;margin-top:40px;">
+  <p class="grad-text text-2xl font-extrabold mb-2">Gacha+</p>
+  <p class="text-[#A89CC8] text-sm">© 2026 Gacha+ · Contenido embebido de YouTube.</p>
+</footer>
+
+<!-- === SCRIPT PRINCIPAL === -->
+<script>
+// === NAVEGACIÓN ENTRE PÁGINAS ===
+function irAPagina(nombre){
+  toggleDrawer();
+  const contenido = document.getElementById('contenido');
+  contenido.innerHTML = '<div class="text-center py-20"><div class="grad-text text-3xl">Cargando...</div></div>';
+  fetch(`${nombre}.html`)
+    .then(res => { if(!res.ok) throw new Error(); return res.text(); })
+    .then(html => { contenido.innerHTML = html; window.scrollTo(0,0); actualizarBloqueos(); })
+    .catch(() => { contenido.innerHTML = `<div class="text-center py-20"><h2 class="text-2xl text-red-400 mb-2">Error al cargar ${nombre}</h2><button onclick="irAPagina('inicio')" class="btn-primary px-4 py-2 rounded-lg">Volver al Inicio</button></div>`; });
+}
+
+// === FUNCIONES COMPARTIDAS DE AUTENTICACIÓN ===
+function showAuthAlert(msg, type='error'){
+  const box = document.getElementById('authAlert');
+  box.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(()=>box.innerHTML='',5000);
+}
+function openAuthModal(){ document.getElementById('authModal').classList.add('show'); document.body.style.overflow='hidden'; }
+function closeAuthModal(){ document.getElementById('authModal').classList.remove('show'); document.body.style.overflow='auto'; }
+function switchAuthTab(tab){
+  const loginForm = document.getElementById('loginForm');
+  const regForm = document.getElementById('registerForm');
+  const tabLogin = document.getElementById('tabLogin');
+  const tabRegister = document.getElementById('tabRegister');
+  if(tab === 'login'){
+    loginForm.classList.remove('hidden'); regForm.classList.add('hidden');
+    tabLogin.classList.add('bg-[var(--accent)]','text-white'); tabLogin.classList.remove('text-[var(--muted)]');
+    tabRegister.classList.remove('bg-[var(--accent)]','text-white'); tabRegister.classList.add('text-[var(--muted)]');
+  }else{
+    loginForm.classList.add('hidden'); regForm.classList.remove('hidden');
+    tabRegister.classList.add('bg-[var(--accent)]','text-white'); tabRegister.classList.remove('text-[var(--muted)]');
+    tabLogin.classList.remove('bg-[var(--accent)]','text-white'); tabLogin.classList.add('text-[var(--muted)]');
+  }
+}
+document.getElementById('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  try {
+    await auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPass').value);
+    closeAuthModal(); actualizarBloqueos();
+  } catch (err) {
+    let msg = 'Error al iniciar sesión';
+    if(err.code==='auth/user-not-found') msg='No existe esa cuenta';
+    else if(err.code==='auth/wrong-password') msg='Contraseña incorrecta';
+    else if(err.code==='auth/invalid-email') msg='Correo inválido';
+    showAuthAlert(msg);
+  }
+});
+document.getElementById('registerForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value;
+  const pass = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+  if(pass !== pass2) return showAuthAlert('Las contraseñas no coinciden');
+  if(pass.length < 6) return showAuthAlert('Mínimo 6 caracteres');
+  try {
+    const userCred = await auth.createUserWithEmailAndPassword(email, pass);
+    await userCred.user.updateProfile({displayName:name});
+    await db.collection('usuarios').doc(userCred.user.uid).set({nombre:name,correo:email,fechaRegistro:new Date()});
+    closeAuthModal(); actualizarBloqueos();
+  } catch (err) {
+    let msg = 'Error al crear cuenta';
+    if(err.code==='auth/email-already-in-use') msg='Correo ya registrado';
+    else if(err.code==='auth/invalid-email') msg='Correo inválido';
+    showAuthAlert(msg);
+  }
+});
+async function signInWithGoogle(){
+  try {
+    const result = await auth.signInWithPopup(provider);
+    const user = result.user;
+    const doc = await db.collection('usuarios').doc(user.uid).get();
+    if(!doc.exists) await db.collection('usuarios').doc(user.uid).set({nombre:user.displayName,correo:user.email,fechaRegistro:new Date()});
+    closeAuthModal(); actualizarBloqueos();
+  } catch (err) { if(err.code!=='auth/cancelled-popup-request') showAuthAlert('Error con Google'); }
+}
+function logout(){ auth.signOut(); toggleDrawer(); actualizarBloqueos(); }
+function toggleDrawer(){ document.getElementById('drawer').classList.toggle('open'); document.getElementById('drawerOverlay').classList.toggle('show'); }
+
+// === ACTUALIZA ESTADO DE SESIÓN EN TODA LA APP ===
+function actualizarBloqueos(){
+  const isAuth = !!currentUser;
+  document.getElementById('loginHeaderBtn').classList.toggle('hidden', isAuth);
+  document.getElementById('userAvatar').classList.toggle('hidden', !isAuth);
+  document.getElementById('userNameDisplay').classList.toggle('hidden', !isAuth);
+  document.getElementById('logoutBtn').classList.toggle('hidden', !isAuth);
+  // Bloqueo de videos y elementos con clase "bloqueado"
+  document.querySelectorAll('.bloqueado').forEach(el => {
+    if(isAuth) el.classList.remove('bloqueado-opaco');
+    else el.classList.add('bloqueado-opaco');
+  });
+}
+
+// === INICIO: CERRAR SPLASH Y CARGAR PÁGINA DE INICIO ===
+auth.onAuthStateChanged(user => {
+  document.getElementById('splash').classList.add('hide');
+  currentUser = user;
+  if(user){
+    const displayName = user.displayName || user.email?.split('@')[0] || 'Usuario';
+    document.getElementById('userNameDisplay').textContent = displayName;
+    document.getElementById('userEmailDisplay').textContent = user.email || '';
+    document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+  }
+  irAPagina('inicio'); // Carga la página de inicio automáticamente
+});
+</script>
+
+</body>
+</html>
