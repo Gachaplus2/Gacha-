@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gacha+ | Comunidad Gacha</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#0F0A1A;--surface:#1A132C;--surface2:#241B3F;--text:#F3EFFF;--muted:#A89CC8;--accent:#A855F7;--accent-soft:rgba(168,85,247,.18);--accent2:#EC4899;--border:rgba(168,85,247,.25);--error:#EF4444;--success:#22C55E;}
+body{background:var(--bg);color:var(--text);font-family:'Bricolage Grotesque',sans-serif;margin:0;overflow-x:hidden;}
+.grad-text{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:700;transition:all .2s;border:none;cursor:pointer;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 8px 20px rgba(168,85,247,.35);}
+.btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text);transition:all .2s;cursor:pointer;}
+.btn-secondary:hover{border-color:var(--accent);background:var(--accent-soft);}
+.input-field{background:var(--surface);border:1px solid var(--border);color:var(--text);transition:border-color .2s,box-shadow .2s;}
+.input-field:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(168,85,247,.15);}
+.card{background:var(--surface);border:1px solid var(--border);backdrop-filter:blur(10px);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .5s ease forwards;}
+.scale-in{animation:fadeIn .4s ease forwards;}
+#splash{position:fixed;inset:0;z-index:999;background:radial-gradient(circle at 50% 40%,#241B3F,#0F0A1A);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s ease,visibility .4s;}
+#splash.hide{opacity:0;visibility:hidden;pointer-events:none;}
+.splash-logo{font-size:clamp(48px,10vw,96px);font-weight:800;letter-spacing:.05em;animation:pulse 1.6s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.06);opacity:.85}}
+.splash-sub{margin-top:16px;font-size:18px;color:#C4B5FD;letter-spacing:.3em;text-transform:uppercase;}
+#drawer{position:fixed;top:0;left:0;height:100%;width:280px;background:#150E26;z-index:60;transform:translateX(-100%);transition:transform .3s ease;box-shadow:4px 0 30px rgba(0,0,0,.5);padding:24px 0;}
+#drawer.open{transform:translateX(0);}
+#drawerOverlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:55;display:none;backdrop-filter:blur(4px);}
+#drawerOverlay.show{display:block;}
+.drawer-item{padding:14px 28px;font-size:16px;font-weight:600;cursor:pointer;transition:all .2s;border-left:3px solid transparent;}
+.drawer-item:hover{background:var(--accent-soft);border-left-color:var(--accent);color:#D8B4FE;}
+.row-scroll{display:flex;gap:14px;overflow-x:auto;padding:8px 2px 16px;scroll-behavior:smooth;}
+.vcard{flex:0 0 auto;width:200px;border-radius:12px;overflow:hidden;background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:all .25s;position:relative;}
+.vcard:hover{transform:scale(1.05);box-shadow:0 10px 30px rgba(168,85,247,.3);}
+.vcard img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;}
+.lock-overlay{position:absolute;inset:0;background:rgba(15,10,26,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;z-index:10;backdrop-filter:blur(2px);}
+.lock-icon{font-size:32px;margin-bottom:4px;}
+.lock-text{font-size:12px;font-weight:600;color:#C4B5FD;}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:70;display:none;overflow-y:auto;backdrop-filter:blur(8px);}
+.modal-backdrop.show{display:block;animation:fadeIn .3s ease forwards;}
+.modal-content{transform:scale(.9);opacity:0;transition:all .3s ease;}
+.modal-backdrop.show .modal-content{transform:scale(1);opacity:1;}
+.alert{border-radius:10px;padding:12px 16px;margin-bottom:16px;font-weight:500;}
+.alert-error{background:rgba(239,68,68,.1);border:1px solid var(--error);color:#FCA5A5;}
+.alert-success{background:rgba(34,197,94,.1);border:1px solid var(--success);color:#86EFAC;}
+.hidden{display:none !important;}
+::-webkit-scrollbar{height:6px;width:8px;}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px;}
+.rank-tab{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--muted);transition:all .2s;}
+.rank-tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;}
+.rank-row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-radius:10px;background:var(--surface);border:1px solid var(--border);margin-bottom:8px;transition:background .2s;}
+.rank-row:hover{background:var(--surface2);}
+.rank-num{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;flex-shrink:0;}
+.score-bar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;flex:1;overflow:hidden;}
+.score-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-logo grad-text">Gacha+</div>
+  <div class="splash-sub">CARGANDO...</div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC3SnIZxQjfcFtaSylPnsGDe0eSZd6-7rY",
+  authDomain: "gachaplus-14fba.firebaseapp.com",
+  projectId: "gachaplus-14fba",
+  storageBucket: "gachaplus-14fba.firebasestorage.app",
+  messagingSenderId: "1014725904149",
+  appId: "1:1014725904149:web:c4f118784d12d77e7c4b1c"
+};
+let app;
+try { app = firebase.initializeApp(firebaseConfig); } catch(e){ if(!/already exists/.test(e.message)) console.error('Firebase:',e); }
+const auth = firebase.auth();
+const db = firebase.firestore();
+const provider = new firebase.auth.GoogleAuthProvider();
+let currentUser = null;
+</script>
+
+<!-- MODAL AUTH -->
+<div id="authModal" class="modal-backdrop">
+  <div class="max-w-md mx-auto px-4 py-12 relative modal-content">
+    <div class="card rounded-2xl p-8 w-full scale-in">
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-2xl hover:text-purple-400 transition-colors" style="background:none;border:none;color:#fff;cursor:pointer;">✕</button>
+      <div class="text-center mb-8 mt-4">
+        <h1 class="text-4xl font-extrabold grad-text mb-2">Gacha+</h1>
+        <p class="text-[#A89CC8]">Inicia sesión o regístrate para ver todo el contenido 🔐</p>
+      </div>
+      <div class="flex mb-8 rounded-lg" style="background:var(--surface2);padding:4px;">
+        <button id="tabLogin" class="flex-1 py-2 rounded-md font-semibold text-sm transition-all" style="background:var(--accent);color:#fff;" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+        <button id="tabRegister" class="flex-1 py-2 rounded-md font-semibold text-sm transition-all" style="color:var(--muted);background:transparent;border:none;cursor:pointer;" onclick="switchAuthTab('register')">Registrarse</button>
+      </div>
+      <div id="authAlert"></div>
+      <form id="loginForm" class="space-y-4">
+        <div><label class="block text-sm font-semibold mb-1">Correo electrónico</label><input type="email" id="loginEmail" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <div><label class="block text-sm font-semibold mb-1">Contraseña</label><input type="password" id="loginPass" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <button type="submit" class="btn-primary w-full py-3 rounded-lg text-lg">🔑 Entrar</button>
+        <div class="relative my-6"><div class="absolute inset-0 flex items-center"><div class="w-full border-t" style="border-color:var(--border);"></div></div><div class="relative flex justify-center"><span class="px-4 text-sm" style="background:var(--surface);color:var(--muted);">o continúa con</span></div></div>
+        <button type="button" onclick="signInWithGoogle()" class="btn-secondary w-full py-3 rounded-lg flex items-center justify-center gap-3">
+          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continuar con Google
+        </button>
+      </form>
+      <form id="registerForm" class="space-y-4 hidden">
+        <div><label class="block text-sm font-semibold mb-1">Nombre de usuario</label><input type="text" id="regName" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <div><label class="block text-sm font-semibold mb-1">Correo electrónico</label><input type="email" id="regEmail" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <div><label class="block text-sm font-semibold mb-1">Contraseña (mínimo 6 caracteres)</label><input type="password" id="regPass" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <div><label class="block text-sm font-semibold mb-1">Confirmar contraseña</label><input type="password" id="regPass2" required class="input-field w-full px-4 py-3 rounded-lg"></div>
+        <button type="submit" class="btn-primary w-full py-3 rounded-lg text-lg">📝 Crear cuenta</button>
+        <div class="relative my-6"><div class="absolute inset-0 flex items-center"><div class="w-full border-t" style="border-color:var(--border);"></div></div><div class="relative flex justify-center"><span class="px-4 text-sm" style="background:var(--surface);color:var(--muted);">o continúa con</span></div></div>
+        <button type="button" onclick="signInWithGoogle()" class="btn-secondary w-full py-3 rounded-lg flex items-center justify-center gap-3">
+          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Continuar con Google
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MENU LATERAL -->
+<div id="drawerOverlay" onclick="toggleDrawer()"></div>
+<nav id="drawer">
+  <div style="padding:0 28px 24px;border-bottom:1px solid var(--border);margin-bottom:12px;">
+    <div class="grad-text text-3xl font-extrabold">Gacha+</div>
+    <p style="color:var(--muted);font-size:12px;margin-top:4px;" id="userEmailDisplay"></p>
+  </div>
+  <div class="drawer-item" onclick="irAPagina('inicio')">🏠 Inicio</div>
+  <div class="drawer-item" onclick="irAPagina('series')">📺 Series</div>
+  <div class="drawer-item" onclick="irAPagina('peliculas')">🎬 Mini Películas</div>
+  <div class="drawer-item" onclick="irAPagina('tutoriales')">📚 Tutoriales</div>
+  <div class="drawer-item" onclick="irAPagina('eventos')">🏆 Eventos</div>
+  <div class="drawer-item" onclick="irAPagina('ranking')">📊 Ranking GachaTubers</div>
+  <div style="position:absolute;bottom:20px;left:28px;right:28px;">
+    <button id="logoutBtn" onclick="logout()" class="btn-secondary w-full py-2 rounded-lg text-sm hidden" style="color:#F87171;border-color:rgba(239,68,68,.3);">🚪 Cerrar sesión</button>
+  </div>
+</nav>
+
+<header class="sticky top-0 z-40" style="background:rgba(15,10,26,.9);backdrop-filter:blur(8px);border-bottom:1px solid rgba(168,85,247,.15);">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+    <button onclick="toggleDrawer()" style="background:transparent;border:0;color:#fff;font-size:22px;cursor:pointer;width:40px;height:40px;border-radius:8px;">☰</button>
+    <span class="grad-text text-2xl font-extrabold cursor-pointer" onclick="irAPagina('inicio')">Gacha+</span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+      <button id="loginHeaderBtn" onclick="openAuthModal()" class="btn-primary px-4 py-2 rounded-lg text-sm">🔑 Iniciar Sesión</button>
+      <span id="userNameDisplay" class="text-sm font-semibold hidden sm:inline" style="color:var(--muted);"></span>
+      <div id="userAvatar" class="w-9 h-9 rounded-full hidden cursor-pointer" style="background:linear-gradient(135deg,#A855F7,#EC4899);display:none;align-items:center;justify-content:center;font-weight:bold;" onclick="toggleDrawer()"></div>
+    </div>
+  </div>
+</header>
+
+<main id="contenido" class="max-w-7xl mx-auto px-4 py-6"></main>
+
+<footer style="border-top:1px solid var(--border);padding:30px 24px 40px;text-align:center;margin-top:40px;">
+  <p class="grad-text text-2xl font-extrabold mb-2">Gacha+</p>
+  <p class="text-sm" style="color:var(--muted);">© 2026 Gacha+ · Contenido embebido de YouTube.</p>
+</footer>
+
+<!-- MODAL VIDEO -->
+<div id="videoModal" class="modal-backdrop">
+  <div class="max-w-5xl mx-auto px-4 py-8 relative modal-content" id="videoModalContent"></div>
+</div>
+
+<script>
+// ===== NAVEGACIÓN =====
+function irAPagina(nombre){
+  toggleDrawer();
+  const c = document.getElementById('contenido');
+  c.innerHTML = '<div class="text-center py-20"><div class="grad-text text-3xl">Cargando...</div></div>';
+  fetch(nombre + '.html')
+    .then(r => { if(!r.ok) throw new Error('no'); return r.text(); })
+    .then(html => { c.innerHTML = html; window.scrollTo(0,0); aplicarBloqueos(); })
+    .catch(() => { c.innerHTML = '<div class="text-center py-20"><h2 class="text-2xl mb-4" style="color:#F87171;">Página no encontrada</h2><button onclick="irAPagina(\'inicio\')" class="btn-primary px-5 py-2 rounded-lg">Volver al Inicio</button></div>'; });
+}
+
+// ===== AUTH =====
+function showAuthAlert(msg){
+  document.getElementById('authAlert').innerHTML = '<div class="alert alert-error">' + msg + '</div>';
+  setTimeout(function(){ document.getElementById('authAlert').innerHTML = ''; }, 5000);
+}
+function openAuthModal(){ document.getElementById('authModal').classList.add('show'); document.body.style.overflow='hidden'; }
+function closeAuthModal(){ document.getElementById('authModal').classList.remove('show'); document.body.style.overflow='auto'; }
+function switchAuthTab(tab){
+  const lf = document.getElementById('loginForm'), rf = document.getElementById('registerForm');
+  const tl = document.getElementById('tabLogin'), tr = document.getElementById('tabRegister');
+  if(tab==='login'){
+    lf.classList.remove('hidden'); rf.classList.add('hidden');
+    tl.style.background='var(--accent)'; tl.style.color='#fff';
+    tr.style.background='transparent'; tr.style.color='var(--muted)';
+  } else {
+    lf.classList.add('hidden'); rf.classList.remove('hidden');
+    tr.style.background='var(--accent)'; tr.style.color='#fff';
+    tl.style.background='transparent'; tl.style.color='var(--muted)';
+  }
+}
+document.getElementById('loginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  auth.signInWithEmailAndPassword(document.getElementById('loginEmail').value, document.getElementById('loginPass').value)
+    .then(function(){ closeAuthModal(); actualizarUI(); })
+    .catch(function(err){
+      var m='Error al iniciar sesión';
+      if(err.code==='auth/user-not-found') m='No existe una cuenta con este correo';
+      else if(err.code==='auth/wrong-password') m='Contraseña incorrecta';
+      else if(err.code==='auth/invalid-email') m='Correo inválido';
+      showAuthAlert(m);
+    });
+});
+document.getElementById('registerForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var name = document.getElementById('regName').value.trim();
+  var email = document.getElementById('regEmail').value;
+  var pass = document.getElementById('regPass').value;
+  var pass2 = document.getElementById('regPass2').value;
+  if(pass!==pass2) return showAuthAlert('Las contraseñas no coinciden');
+  if(pass.length<6) return showAuthAlert('La contraseña debe tener al menos 6 caracteres');
+  auth.createUserWithEmailAndPassword(email, pass)
+    .then(function(uc){
+      return uc.user.updateProfile({displayName:name}).then(function(){
+        return db.collection('usuarios').doc(uc.user.uid).set({nombre:name, correo:email, fechaRegistro:new Date()});
+      });
+    })
+    .then(function(){ closeAuthModal(); actualizarUI(); })
+    .catch(function(err){
+      var m='Error al crear cuenta';
+      if(err.code==='auth/email-already-in-use') m='Este correo ya está registrado';
+      else if(err.code==='auth/invalid-email') m='Correo inválido';
+      showAuthAlert(m);
+    });
+});
+function signInWithGoogle(){
+  auth.signInWithPopup(provider).then(function(result){
+    var u = result.user;
+    return db.collection('usuarios').doc(u.uid).get().then(function(d){
+      if(!d.exists) return db.collection('usuarios').doc(u.uid).set({nombre:u.displayName, correo:u.email, fechaRegistro:new Date()});
+    });
+  }).then(function(){ closeAuthModal(); actualizarUI(); })
+    .catch(function(err){ if(err.code!=='auth/cancelled-popup-request') showAuthAlert('Error al iniciar con Google'); });
+}
+function logout(){ auth.signOut(); toggleDrawer(); }
+function toggleDrawer(){ document.getElementById('drawer').classList.toggle('open'); document.getElementById('drawerOverlay').classList.toggle('show'); }
+
+// ===== VIDEO MODAL =====
+function verVideo(id, titulo){
+  if(!currentUser){ openAuthModal(); return; }
+  var m = document.getElementById('videoModal');
+  document.getElementById('videoModalContent').innerHTML =
+    '<button onclick="cerrarVideo()" style="position:absolute;top:0;right:0;z-index:80;background:rgba(0,0,0,.7);border:none;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;">✕</button>' +
+    '<div class="relative rounded-xl overflow-hidden mb-6" style="aspect-ratio:16/9;background:#000;">' +
+    '<iframe src="https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0&modestbranding=1" style="position:absolute;inset:0;width:100%;height:100%;border:0;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>' +
+    '</div>' +
+    '<h2 class="text-2xl font-bold mb-2">'+titulo+'</h2>' +
+    '<p style="color:var(--muted);">¡Apoya al creador visitando su canal oficial!</p>';
+  m.classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function cerrarVideo(){
+  document.getElementById('videoModal').classList.remove('show');
+  document.body.style.overflow='auto';
+  document.getElementById('videoModalContent').innerHTML='';
+}
+
+// ===== RANKING DATA =====
+var RANK_TUBERS = [
+  {name:"Jazmín_Studios♡",score:98.0,subs:"~200K",views:"1.53M"},
+  {name:"Euni (Eunice_mha)",score:75.7,subs:"130K",views:"882K"},
+  {name:"Emy! ᐛ ) 💕",score:69.7,subs:"869K",views:"633K"},
+  {name:"Valeria Gtz",score:62.1,subs:"~80K",views:"654K"},
+  {name:"Soy Tote",score:48.7,subs:"178K",views:"316K"},
+  {name:"Gene Pop",score:40.7,subs:"217K",views:"159K"},
+  {name:"YUNA_KI",score:28.4,subs:"4.5K",views:"27K"},
+  {name:"Anyme Wolf",score:19.0,subs:"725",views:"60K"},
+  {name:"Cristalis Diamonds",score:12.4,subs:"1.4K",views:"2K"},
+  {name:"KaLeB",score:1.8,subs:"3.8K",views:"35K"},
+  {name:"aBe",score:0.4,subs:"12.8K",views:"—"},
+  {name:"GachaLife's World",score:0.1,subs:"259",views:"2K"}
+];
+var RANK_VIDEOS = [
+  {name:"Medio litro de té frío",author:"Euni",views:"397K",score:98},
+  {name:"Hey mom | GL2",author:"Jazmín_Studios",views:"360K",score:89},
+  {name:"🏃‍♀️ #gacha #animation",author:"Jazmín_Studios",views:"336K",score:83},
+  {name:"Unstable Little Mermaid",author:"Jazmín_Studios",views:"328K",score:81},
+  {name:"#jackstauber animation",author:"Jazmín_Studios",views:"328K",score:80},
+  {name:"Uuf estas Barbies 😝",author:"Euni",views:"252K",score:62},
+  {name:"Vitamina trend | Alight",author:"Emy!",views:"233K",score:57},
+  {name:"El futuro de Japón",author:"Emy!",views:"210K",score:52},
+  {name:"Isabella y Caleb…",author:"Valeria Gtz",views:"205K",score:50},
+  {name:"Llamada🗣📱 #gacha",author:"Jazmín_Studios",views:"180K",score:44}
+];
+var RANK_COLORS = ['#FBBF24','#C084FC','#F472B6'];
+var currentRankData = RANK_TUBERS;
+function renderRankList(data){
+  var el = document.getElementById('rankList');
+  if(!el) return;
+  el.innerHTML = data.map(function(r,i){
+    var bg = i<3 ? RANK_COLORS[i] : '#241B3F';
+    var tc = i<3 ? '#0F0A1A' : '#F3EFFF';
+    return '<div class="rank-row scale-in" style="animation-delay:'+(i*40)+'ms;">'+
+      '<div class="rank-num" style="background:'+bg+';color:'+tc+';">'+(i+1)+'</div>'+
+      '<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+r.name+'</div>'+
+      '<div style="font-size:11px;color:#A89CC8;">'+(r.author?r.author+' · ':'')+(r.subs?r.subs+' suscriptores · ':'')+(r.views?r.views+' vistas':'')+'</div></div>'+
+      '<div class="score-bar" style="max-width:140px;"><div class="score-fill" style="width:'+r.score+'%;"></div></div>'+
+      '<div style="font-weight:800;font-size:18px;min-width:45px;text-align:right;" class="grad-text">'+r.score+'</div></div>';
+  }).join('');
+}
+window.cambiarRankTab = function(el){
+  document.querySelectorAll('#rankTabs .rank-tab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  currentRankData = el.dataset.tab==='videos' ? RANK_VIDEOS : RANK_TUBERS;
+  renderRankList(currentRankData);
+};
+
+// ===== BLOQUEOS =====
+function aplicarBloqueos(){
+  document.querySelectorAll('[data-video]').forEach(function(el){
+    el.onclick = function(){ verVideo(el.getAttribute('data-video'), el.getAttribute('data-titulo')||'Video'); };
+  });
+  // Ranking: mostrar/ocultar según sesión
+  var locked = document.getElementById('rankLocked');
+  var unlocked = document.getElementById('rankUnlocked');
+  if(locked && unlocked){
+    if(currentUser){
+      locked.classList.add('hidden');
+      unlocked.classList.remove('hidden');
+      renderRankList(currentRankData);
+    } else {
+      locked.classList.remove('hidden');
+      unlocked.classList.add('hidden');
+    }
+  }
+}
+
+function actualizarUI(){
+  var auth = !!currentUser;
+  document.getElementById('loginHeaderBtn').classList.toggle('hidden', auth);
+  var av = document.getElementById('userAvatar');
+  av.classList.toggle('hidden', !auth);
+  av.style.display = auth ? 'flex' : 'none';
+  document.getElementById('userNameDisplay').classList.toggle('hidden', !auth);
+  document.getElementById('logoutBtn').classList.toggle('hidden', !auth);
+  aplicarBloqueos();
+}
+
+// ===== INICIO: splash se cierra SIEMPRE =====
+auth.onAuthStateChanged(function(user){
+  document.getElementById('splash').classList.add('hide');
+  currentUser = user;
+  if(user){
+    var dn = user.displayName || (user.email ? user.email.split('@')[0] : 'Usuario');
+    document.getElementById('userNameDisplay').textContent = dn;
+    document.getElementById('userEmailDisplay').textContent = user.email || '';
+    document.getElementById('userAvatar').textContent = dn.charAt(0).toUpperCase();
+  }
+  actualizarUI();
+  irAPagina('inicio');
+});
+
+// Cerrar modales con Escape
+document.addEventListener('keydown', function(e){
+  if(e.key==='Escape'){ closeAuthModal(); cerrarVideo(); }
+});
+</script>
+</body>
+</html>
