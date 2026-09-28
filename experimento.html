@@ -1,0 +1,40 @@
+<style>
+.ptab{display:inline-block;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid rgba(232,185,35,.3);color:#9A9A9A;margin-right:8px;transition:all .2s;}
+.p-input{display:none;}
+#p1:checked ~ .ptabs label[for="p1"], #p2:checked ~ .ptabs label[for="p2"]{background:linear-gradient(135deg,#B8860B,#FFD700);color:#1A1400;border-color:transparent;}
+.p-block{display:none;margin-top:18px;}
+#p1:checked ~ .p-cont{display:block;}
+#p2:checked ~ .p-tra{display:block;}
+</style>
+
+<div class="relative rounded-2xl overflow-hidden mb-6 border" style="border-color:rgba(232,185,35,.3);background:#161616;">
+  <img src="el_experimento.jpg" style="width:100%;max-height:340px;object-fit:cover;object-position:center;display:block;" onerror="this.style.display='none'">
+  <div style="padding:22px;">
+    <h1 class="text-3xl font-extrabold grad-gold mb-2">El Experimento</h1>
+    <p style="color:#9A9A9A;max-width:640px;">Un experimento que sale mal… nada es lo que parece. Suspenso, misterio y decisiones que cambiarán todo. 4 partes llenas de tensión.</p>
+    <div class="flex gap-3 mt-4 flex-wrap">
+      <button class="btn-primary px-5 py-2.5 rounded-lg" onclick="verVideo('TU_ID_AQUI','El Experimento | Parte 1')">▶ Ver Parte 1</button>
+      <button class="btn-secondary px-5 py-2.5 rounded-lg" onclick="verVideo('TU_ID_TRAILER','El Experimento | Tráiler Oficial')">🎬 Ver Tráiler</button>
+    </div>
+  </div>
+</div>
+
+<input type="radio" name="peli" id="p1" class="p-input" checked>
+<input type="radio" name="peli" id="p2" class="p-input">
+<div class="ptabs mb-2">
+  <label for="p1" class="ptab">Partes (4)</label>
+  <label for="p2" class="ptab">Tráiler</label>
+</div>
+
+<div class="p-block p-cont">
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    <div class="vcard" style="width:100%;" data-video="TU_ID_P1" data-titulo="El Experimento | Parte 1"><img src="https://i.ytimg.com/vi/TU_ID_P1/hqdefault.jpg" loading="lazy"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div><div style="padding:10px;"><p style="font-size:13px;font-weight:600;">Parte 1 · El Inicio</p></div></div>
+    <div class="vcard" style="width:100%;" data-video="TU_ID_P2" data-titulo="El Experimento | Parte 2"><img src="https://i.ytimg.com/vi/TU_ID_P2/hqdefault.jpg" loading="lazy"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div><div style="padding:10px;"><p style="font-size:13px;font-weight:600;">Parte 2 · El Cambio</p></div></div>
+    <div class="vcard" style="width:100%;" data-video="TU_ID_P3" data-titulo="El Experimento | Parte 3"><img src="https://i.ytimg.com/vi/TU_ID_P3/hqdefault.jpg" loading="lazy"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div><div style="padding:10px;"><p style="font-size:13px;font-weight:600;">Parte 3 · La Verdad</p></div></div>
+    <div class="vcard" style="width:100%;" data-video="TU_ID_P4" data-titulo="El Experimento | Parte 4 · Final"><img src="https://i.ytimg.com/vi/TU_ID_P4/hqdefault.jpg" loading="lazy"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div><div style="padding:10px;"><p style="font-size:13px;font-weight:600;">Parte 4 · El Final</p></div></div>
+  </div>
+</div>
+
+<div class="p-block p-tra">
+  <div class="vcard" style="width:100%;max-width:400px;" data-video="TU_ID_TRAILER" data-titulo="El Experimento | Tráiler Oficial"><img src="https://i.ytimg.com/vi/TU_ID_TRAILER/hqdefault.jpg" loading="lazy"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div><div style="padding:10px;"><p style="font-size:13px;font-weight:600;">🎬 Tráiler Oficial</p></div></div>
+</div>
