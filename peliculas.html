@@ -1,1 +1,30 @@
-<h2 class="text-2xl font-extrabold mb-6">🎬 Mini Películas</h2><div class="grid grid-cols-1 sm:grid-cols-2 gap-5"><div class="card rounded-xl overflow-hidden cursor-pointer" data-video="9ISJkVpDEVY" data-titulo="Experimento"><div style="aspect-ratio:16/9;background:#1F1F1F;overflow:hidden;position:relative;"><img src="experimento.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div></div><div style="padding:14px;"><h3 class="font-bold text-lg grad-gold">Experimento</h3><p class="text-sm" style="color:#9A9A9A;">Mini Película</p><p class="text-xs mt-2" style="color:#E8B923;">▶ Reproducir</p></div></div><div class="card rounded-xl overflow-hidden cursor-pointer" data-video="yHfVyr5nEwQ" data-titulo="Amor Oscuro"><div style="aspect-ratio:16/9;background:#1F1F1F;overflow:hidden;position:relative;"><img src="amor_oscuro.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div></div><div style="padding:14px;"><h3 class="font-bold text-lg grad-gold">Amor Oscuro</h3><p class="text-sm" style="color:#9A9A9A;">Mini Película</p><p class="text-xs mt-2" style="color:#E8B923;">▶ Reproducir</p></div></div></div>
+<h2 class="text-2xl font-extrabold mb-6">🎬 Mini Películas</h2>
+<p class="text-sm mb-6" style="color:#9A9A9A;">Toca una portada para ver tráiler y todos los episodios 👇</p>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+  <!-- EL EXPERIMENTO -->
+  <div class="card rounded-xl overflow-hidden cursor-pointer" onclick="irAPagina('experimento')">
+    <div style="aspect-ratio:16/9;background:#1F1F1F;overflow:hidden;">
+      <img src="el_experimento.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;" onerror="this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;color:#666;\'>Sube: el_experimento.jpg</div>'">
+    </div>
+    <div style="padding:16px;">
+      <h3 class="font-bold text-xl grad-gold">El Experimento</h3>
+      <p class="text-sm mt-1" style="color:#9A9A9A;">4 partes · Suspenso / Misterio</p>
+      <p class="text-xs mt-3 font-semibold" style="color:#E8B923;">Ver película →</p>
+    </div>
+  </div>
+
+  <!-- AMOR OSCURO -->
+  <div class="card rounded-xl overflow-hidden cursor-pointer" onclick="irAPagina('amoroscuro')">
+    <div style="aspect-ratio:16/9;background:#1F1F1F;overflow:hidden;">
+      <img src="amor_oscuro.jpg" style="width:100%;height:100%;object-fit:cover;object-position:center;display:block;" onerror="this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:100%;color:#666;\'>Sube: amor_oscuro.jpg</div>'">
+    </div>
+    <div style="padding:16px;">
+      <h3 class="font-bold text-xl grad-gold">Amor Oscuro</h3>
+      <p class="text-sm mt-1" style="color:#9A9A9A;">5 partes · Drama / Romance oscuro</p>
+      <p class="text-xs mt-3 font-semibold" style="color:#E8B923;">Ver película →</p>
+    </div>
+  </div>
+
+</div>
