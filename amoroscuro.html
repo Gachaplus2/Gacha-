@@ -1,0 +1,41 @@
+<style>
+.atab{display:inline-block;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid rgba(232,185,35,.3);color:#9A9A9A;margin-right:8px;transition:all .2s;}
+.a-input{display:none;}
+#a1:checked ~ .atabs label[for="a1"], #a2:checked ~ .atabs label[for="a2"]{background:linear-gradient(135deg,#B8860B,#FFD700);color:#1A1400;border-color:transparent;}
+.a-block{display:none;margin-top:18px;}
+#a1:checked ~ .a-cont{display:block;}
+#a2:checked ~ .a-tra{display:block;}
+</style>
+
+<div class="relative rounded-2xl overflow-hidden mb-6 border" style="border-color:rgba(232,185,35,.3);background:#161616;">
+  <img src="amor_oscuro.jpg" style="width:100%;max-height:340px;object-fit:cover;object-position:center;display:block;" onerror="this.style.display='none'">
+  <div style="padding:22px;">
+    <h1 class="text-3xl font-extrabold grad-gold mb-2">Amor Oscuro</h1>
+    <p style="color:#9A9A9A;max-width:640px;">Una historia de amor que no debería existir. Secretos, dolor y decisiones que lo arriesgan todo. 5 partes de drama intenso.</p>
+    <div class="flex gap-3 mt-4 flex-wrap">
+      <button class="btn-primary px-5 py-2.5 rounded-lg" onclick="verVideo('TU_ID_A1','Amor Oscuro | Parte 1')">▶ Ver Parte 1</button>
+      <button class="btn-secondary px-5 py-2.5 rounded-lg" onclick="verVideo('TU_ID_ATRA','Amor Oscuro | Tráiler Oficial')">🎬 Ver Tráiler</button>
+    </div>
+  </div>
+</div>
+
+<input type="radio" name="amor" id="a1" class="a-input" checked>
+<input type="radio" name="amor" id="a2" class="a-input">
+<div class="atabs mb-2">
+  <label for="a1" class="atab">Partes (5)</label>
+  <label for="a2" class="atab">Tráiler</label>
+</div>
+
+<div class="a-block a-cont">
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+    <div class="vcard" style="width:100%;" data-video="TU_ID_A1" data-titulo="Amor Oscuro | Parte 1"><img src="https://i.ytimg.com/vi/TU_ID_A1/hqdefault.jpg" loading="lazy"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div><div style="padding:10px;"><p style="font-size:13px;font-weight:600;">Parte 1 · El Encuentro</p></div></div>
+    <div class="vcard" style="width:100%;" data-video="TU_ID_A2" data-titulo="Amor Oscuro | Parte 2"><img src="https://i.ytimg.com/vi/TU_ID_A2/hqdefault.jpg" loading="lazy"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div><div style="padding:10px;"><p style="font-size:13px;font-weight:600;">Parte 2 · El Secreto</p></div></div>
+    <div class="vcard" style="width:100%;" data-video="TU_ID_A3" data-titulo="Amor Oscuro | Parte 3"><img src="https://i.ytimg.com/vi/TU_ID_A3/hqdefault.jpg" loading="lazy"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div><div style="padding:10px;"><p style="font-size:13px;font-weight:600;">Parte 3 · La Verdad</p></div></div>
+    <div class="vcard" style="width:100%;" data-video="TU_ID_A4" data-titulo="Amor Oscuro | Parte 4"><img src="https://i.ytimg.com/vi/TU_ID_A4/hqdefault.jpg" loading="lazy"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div><div style="padding:10px;"><p style="font-size:13px;font-weight:600;">Parte 4 · El Conflicto</p></div></div>
+    <div class="vcard" style="width:100%;" data-video="TU_ID_A5" data-titulo="Amor Oscuro | Parte 5 · Final"><img src="https://i.ytimg.com/vi/TU_ID_A5/hqdefault.jpg" loading="lazy"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div><div style="padding:10px;"><p style="font-size:13px;font-weight:600;">Parte 5 · El Final</p></div></div>
+  </div>
+</div>
+
+<div class="a-block a-tra">
+  <div class="vcard" style="width:100%;max-width:400px;" data-video="TU_ID_ATRA" data-titulo="Amor Oscuro | Tráiler Oficial"><img src="https://i.ytimg.com/vi/TU_ID_ATRA/hqdefault.jpg" loading="lazy"><div class="lock-overlay"><span class="lock-icon">🔒</span><span class="lock-text">Inicia sesión</span></div><div style="padding:10px;"><p style="font-size:13px;font-weight:600;">🎬 Tráiler Oficial</p></div></div>
+</div>
