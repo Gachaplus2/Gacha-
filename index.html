@@ -30,7 +30,6 @@ body{background:var(--bg);color:var(--text);font-family:'Bricolage Grotesque',sa
 @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .fade-in{animation:fadeIn .5s ease forwards;}
 .scale-in{animation:fadeIn .4s ease forwards;}
-/* LOGO: contorno nítido SOLO morado <-> dorado */
 .logo-anim{font-weight:800;letter-spacing:.02em;color:transparent;-webkit-text-stroke:2.5px #A855F7;animation:strokeCycle 4s linear infinite;display:inline-block;}
 @keyframes strokeCycle{0%{-webkit-text-stroke-color:#A855F7}50%{-webkit-text-stroke-color:#FFD700}100%{-webkit-text-stroke-color:#A855F7}}
 #splash{position:fixed;inset:0;z-index:999;background:radial-gradient(circle at 50% 40%,#1C1810,#0A0A0A);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s ease,visibility .5s;}
@@ -91,6 +90,9 @@ const db = firebase.firestore();
 const provider = new firebase.auth.GoogleAuthProvider();
 const ADMIN_EMAIL = 'gachaplus905@gmail.com';
 let currentUser = null;
+const YT_API_KEY = 'AIzaSyDsG3y90DvqKzsnjTrXTtnYH3YA6UR58bU';
+const MY_CHANNEL_ID = 'UCv7cQ0IxRwXRC0duJHUf1pw';
+const UPLOADS_ID = 'UUv7cQ0IxRwXRC0duJHUf1pw';
 </script>
 <div id="authModal" class="modal-backdrop">
   <div class="max-w-md mx-auto px-4 py-12 relative modal-content">
@@ -231,19 +233,20 @@ function cerrarVideo(){
   document.getElementById('videoModalContent').innerHTML='';
 }
 var RANK_TUBERS = [
-  {name:"Jazmín_Studios♡",score:98.0,subs:"~200K",views:"1.53M",avatar:"https://yt3.googleusercontent.com/obgFecO_SwaP70vpGRz-U02yBe2gbz5spEWBeL3aSWql_tMzy33RH3RgMz5yNYFqhTpXNz01=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@jazmin_studios117",init:"J"},
-  {name:"Euni (Eunice_mha)",score:75.7,subs:"130K",views:"882K",avatar:"https://yt3.googleusercontent.com/i6T5jE9tl4neDZXvKRtOgZfNx0q6mVMDjLcYYfHKrRHIP-B1gEm4AjIJv80XA1Tgvq27LeiB=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@eunice_mha",init:"E"},
-  {name:"Emy! ᐛ ) 💕",score:69.7,subs:"869K",views:"633K",avatar:"https://yt3.googleusercontent.com/5GFWsmJGKwvEH26DGw_QktuFsLNwqcS6HOmcgl1meA0-BGUSDogBP6TwT1-ORlQG6DLvnYLglLo=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@emysitaa",init:"E"},
-  {name:"Valeria Gtz",score:62.1,subs:"~80K",views:"654K",avatar:"https://yt3.googleusercontent.com/XC2z79KJjRjadaVWgqRVwdteOlMNOFKp727LjyArl9UHCcpYsXoMjXIsUiC3eJGvyN9TG8Mf=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@valeriagtz17",init:"V"},
-  {name:"Soy Tote",score:48.7,subs:"178K",views:"316K",avatar:"https://yt3.googleusercontent.com/I_NJckXY_86KW_h_uqpD-BIznoMMCd29GUkr51_ToohBI5CzuQLvU1MPsxvrigmds0OZ8--dGYo=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@soytote",init:"S"},
-  {name:"Gene Pop",score:40.7,subs:"217K",views:"159K",avatar:"https://yt3.googleusercontent.com/PAI2jFHLlZ6KDzavwEli99rmu-I_LmFLyk4FPdaIjBQaXMqZFlYh1NPdtK72n864Xc-a46TKrg=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@lagenepop",init:"G"},
-  {name:"YUNA_KI",score:28.4,subs:"4.5K",views:"27K",avatar:"https://yt3.googleusercontent.com/BQ32P-TpbVcFzvVFkDizepawyMT9s5qpcL4nnixY6F_AiClJGNm4D0sevf-4sNdLlpfhr9D9_ps=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@yuna_ki15",init:"Y"},
-  {name:"Anyme Wolf",score:19.0,subs:"725",views:"60K",avatar:"https://yt3.googleusercontent.com/8EydJoL9z6GifPrF2WIBfnalk1DXlnE5RAtcbOHnxl_yeHO14G8dLN2DdmtP3YAFCKRMtheBTwQ=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@anyme_wolfgc",init:"A"},
-  {name:"Cristalis Diamonds",score:12.4,subs:"1.4K",views:"2K",avatar:"https://yt3.googleusercontent.com/vOKh-4jzoDoHuiK6GzcI7-U58-c6hIcUlZ_1snSd85xio4Je9yliOgbjX79LJHNMwBsVcGj0=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@cristalischocolates",init:"C"},
-  {name:"KaLeB",score:1.8,subs:"3.8K",views:"35K",avatar:"https://yt3.googleusercontent.com/82gLYudMpVs_uoJmw8_V-QUsROr5WPeJjIPGYITWi5tY3qahxTnigcQMW3dVo5jDMlco-BGqbw=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@kaleb_thehawk",init:"K"},
-  {name:"aBe",score:0.4,subs:"12.8K",views:"—",avatar:"https://yt3.googleusercontent.com/-ADKPQVqKkwGjDHjp2n-et4CU2oQeS8cQzZJEFAOEG2_phZjd-LTgHpgjah4OTsWhU9iOjZqzw=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@lasenioritaabe",init:"A"},
-  {name:"GachaLife's World",score:0.1,subs:"259",views:"2K",avatar:"https://yt3.googleusercontent.com/Z7VMKmP4oBOS5pOpEwEOrMePHTOg6wjZHDvc26vcGPe_25iHWbbAo_jqrK_gb0xc6ig2Fi-rHg=s88-c-k-c0x00ffffff-no-rj",canal:"https://youtube.com/@gachalifes_world",init:"G"}
+  {name:"Jazmín_Studios♡",score:98.0,subs:"~200K",views:"1.53M",canal:"https://youtube.com/@jazmin_studios117",init:"J"},
+  {name:"Euni (Eunice_mha)",score:75.7,subs:"130K",views:"882K",canal:"https://youtube.com/@eunice_mha",init:"E"},
+  {name:"Emy! ᐛ ) 💕",score:69.7,subs:"869K",views:"633K",canal:"https://youtube.com/@emysitaa",init:"E"},
+  {name:"Valeria Gtz",score:62.1,subs:"~80K",views:"654K",canal:"https://youtube.com/@valeriagtz17",init:"V"},
+  {name:"Soy Tote",score:48.7,subs:"178K",views:"316K",canal:"https://youtube.com/@soytote",init:"S"},
+  {name:"Gene Pop",score:40.7,subs:"217K",views:"159K",canal:"https://youtube.com/@lagenepop",init:"G"},
+  {name:"YUNA_KI",score:28.4,subs:"4.5K",views:"27K",canal:"https://youtube.com/@yuna_ki15",init:"Y"},
+  {name:"Anyme Wolf",score:19.0,subs:"725",views:"60K",canal:"https://youtube.com/@anyme_wolfgc",init:"A"},
+  {name:"Cristalis Diamonds",score:12.4,subs:"1.4K",views:"2K",canal:"https://youtube.com/@cristalischocolates",init:"C"},
+  {name:"KaLeB",score:1.8,subs:"3.8K",views:"35K",canal:"https://youtube.com/@kaleb_thehawk",init:"K"},
+  {name:"aBe",score:0.4,subs:"12.8K",views:"—",canal:"https://youtube.com/@lasenioritaabe",init:"A"},
+  {name:"GachaLife's World",score:0.1,subs:"259",views:"2K",canal:"https://youtube.com/@gachalifes_world",init:"G"}
 ];
+var RANK_HANDLES = ['jazmin_studios117','eunice_mha','emysitaa','valeriagtz17','soytote','lagenepop','yuna_ki15','anyme_wolfgc','cristalischocolates','kaleb_thehawk','lasenioritaabe','gachalifes_world'];
 var RANK_VIDEOS = [
   {name:"Medio litro de té frío",author:"Euni",views:"397K",score:98},
   {name:"Hey mom | GL2",author:"Jazmín_Studios",views:"360K",score:89},
@@ -263,9 +266,7 @@ function renderRankList(data){
   el.innerHTML = data.map(function(r,i){
     var bg = i<3 ? RANK_MEDALS[i] : '#1F1F1F';
     var tc = i<3 ? '#1A1400' : '#F0EDE6';
-    var avatarHtml = r.avatar
-      ? '<img class="rank-avatar" src="'+r.avatar+'" alt="">'
-      : '<div class="rank-avatar" style="display:flex;align-items:center;justify-content:center;font-weight:800;background:var(--surface2);color:var(--gold2);">'+r.init+'</div>';
+    var avatarHtml = '<div class="rank-avatar" data-idx="'+i+'" style="display:flex;align-items:center;justify-content:center;font-weight:800;background:var(--surface2);color:var(--gold2);">'+r.init+'</div>';
     return '<div class="rank-row scale-in" style="animation-delay:'+(i*40)+'ms;">'+
       '<div class="rank-num" style="background:'+bg+';color:'+tc+';">'+(i+1)+'</div>'+
       avatarHtml+
@@ -281,14 +282,51 @@ window.cambiarRankTab = function(el){
   el.classList.add('active');
   currentRankData = el.dataset.tab==='videos' ? RANK_VIDEOS : RANK_TUBERS;
   renderRankList(currentRankData);
+  if(currentRankData===RANK_TUBERS) actualizarAvataresEnVivo();
 };
 window.refreshRanking = function(){
   var now = new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
   var rd = document.getElementById('rankDate'); if(rd) rd.textContent = now;
   renderRankList(currentRankData);
+  if(currentRankData===RANK_TUBERS) actualizarAvataresEnVivo();
   if(db) db.collection('ranking').doc('snapshot').set({fecha:now,tubers:RANK_TUBERS,videos:RANK_VIDEOS,actualizadoPor:currentUser?currentUser.email:'admin'});
   alert('✅ Ranking actualizado');
 };
+// === YOUTUBE API: avatares en vivo + mis videos con vistas ===
+function ytFetch(url){ return fetch(url).then(function(r){return r.json();}); }
+function actualizarAvataresEnVivo(){
+  RANK_HANDLES.forEach(function(h,idx){
+    ytFetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&forHandle='+h+'&key='+YT_API_KEY)
+      .then(function(d){
+        if(d.items && d.items[0]){
+          var url=d.items[0].snippet.thumbnails.default.url;
+          var el=document.querySelector('#rankList .rank-avatar[data-idx="'+idx+'"]');
+          if(el){ el.outerHTML='<img class="rank-avatar" src="'+url+'" alt="">'; }
+        }
+      }).catch(function(){});
+  });
+}
+function cargarMisVideosEnVivo(cb){
+  ytFetch('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId='+UPLOADS_ID+'&key='+YT_API_KEY)
+    .then(function(d){
+      var ids=(d.items||[]).map(function(i){return i.snippet.resourceId.videoId;});
+      if(!ids.length) return cb([]);
+      return ytFetch('https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id='+ids.join(',')+'&key='+YT_API_KEY)
+        .then(function(v){
+          var list=(v.items||[]).map(function(i){return {id:i.id,titulo:i.snippet.title,vistas:parseInt(i.statistics.viewCount||0)};});
+          list.sort(function(a,b){return b.vistas-a.vistas;});
+          cb(list);
+        });
+    }).catch(function(){ cb([]); });
+}
+function agregarATextarea(taId, id, titulo){
+  var ta=document.getElementById(taId); if(!ta) return;
+  var linea=id+'|||'+titulo;
+  if(ta.value.indexOf(linea)>=0) return;
+  ta.value = (ta.value? ta.value.replace(/\s+$/,'')+'\n':'') + linea;
+  ta.scrollTop=ta.scrollHeight;
+}
+function fmtViews(n){ if(n>=1000000) return (n/1000000).toFixed(1)+'M'; if(n>=1000) return Math.round(n/1000)+'K'; return ''+n; }
 function aplicarBloqueos(){
   document.querySelectorAll('[data-video]').forEach(function(el){
     el.onclick = function(){ verVideo(el.getAttribute('data-video'), el.getAttribute('data-titulo')||'Video'); };
@@ -297,7 +335,7 @@ function aplicarBloqueos(){
   document.querySelectorAll('.lock-overlay').forEach(function(o){ o.style.display = logged ? 'none' : 'flex'; });
   var locked = document.getElementById('rankLocked'), unlocked = document.getElementById('rankUnlocked');
   if(locked && unlocked){
-    if(currentUser){ locked.classList.add('hidden'); unlocked.classList.remove('hidden'); renderRankList(currentRankData); }
+    if(currentUser){ locked.classList.add('hidden'); unlocked.classList.remove('hidden'); renderRankList(currentRankData); actualizarAvataresEnVivo(); }
     else { locked.classList.remove('hidden'); unlocked.classList.add('hidden'); }
   }
   var rb = document.getElementById('refreshRankBtn');
@@ -359,24 +397,7 @@ window.guardarContenidoInicio = function(top10, recomendados, recien){
     editadoPor: currentUser ? currentUser.email : 'admin'
   });
 };
-window.sincronizarYouTube = function(cb){
-  var rss = 'https://www.youtube.com/feeds/videos.xml?channel_id=UCv7cQ0IxRwXRC0duJHUf1pw';
-  fetch('https://api.allorigins.win/get?url='+encodeURIComponent(rss))
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      var xml = data.contents || '';
-      var entries = xml.split('<entry>').slice(1);
-      var lines = [];
-      entries.forEach(function(e){
-        var idM = e.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
-        var tiM = e.match(/<title>([^<]*)<\/title>/);
-        if(idM) lines.push(idM[1]+'|||'+(tiM?tiM[1]:'Video'));
-      });
-      cb(null, lines.slice(0,15).join('\n'));
-    })
-    .catch(function(err){ cb(err, null); });
-};
-// === PANEL DE ADMIN (fix: scripts inline no se ejecutan al inyectar) ===
+// === PANEL DE ADMIN (con videos en vivo + seleccionar con clic) ===
 function iniciarAdminPanel(){
   var panel = document.getElementById('adminPanel');
   if(!panel) return;
@@ -399,13 +420,26 @@ function iniciarAdminPanel(){
       setTimeout(function(){ document.getElementById('adminMsg').textContent=''; }, 6000);
     }).catch(function(e){ alert('Error: '+e.message); });
   };
-  document.getElementById('btnSyncYT').onclick = function(){
-    sincronizarYouTube(function(err,txt){
-      if(err){ alert('❌ Error al sincronizar: '+err); return; }
-      document.getElementById('taRecien').value = txt;
-      alert('✅ Sincronizado: '+txt.split('\n').filter(function(l){return l.trim();}).length+' videos. Revisa y pulsa Guardar.');
+  var cont=document.getElementById('misVideosEnVivo');
+  if(cont){
+    cont.innerHTML='<p style="color:#9A9A9A;">Cargando tus videos con vistas reales… ⏳</p>';
+    cargarMisVideosEnVivo(function(list){
+      if(!list.length){ cont.innerHTML='<p style="color:#F87171;">❌ No se pudieron cargar. Revisa la API key.</p>'; return; }
+      cont.innerHTML = '<p class="text-sm mb-3" style="color:#9A9A9A;">'+list.length+' videos · ordenados por vistas · pulsa un botón para agregarlo:</p>'+
+        '<div style="max-height:420px;overflow-y:auto;border:1px solid rgba(232,185,35,.2);border-radius:10px;padding:8px;">'+
+        list.map(function(v){
+          var t=v.titulo.replace(/'/g,"\\'");
+          return '<div style="display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid rgba(255,255,255,.06);">'+
+            '<img src="https://i.ytimg.com/vi/'+v.id+'/default.jpg" style="width:70px;border-radius:4px;flex-shrink:0;">'+
+            '<div style="flex:1;min-width:0;"><p style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+v.titulo+'</p>'+
+            '<p style="font-size:11px;color:#E8B923;">👁 '+fmtViews(v.vistas)+' vistas</p></div>'+
+            '<button class="btn-secondary px-2 py-1 rounded text-xs" onclick="agregarATextarea(\'taTop10\',\''+v.id+'\',\''+t+'\')">+Top10</button>'+
+            '<button class="btn-secondary px-2 py-1 rounded text-xs" onclick="agregarATextarea(\'taRecom\',\''+v.id+'\',\''+t+'\')">+Recom</button>'+
+            '<button class="btn-secondary px-2 py-1 rounded text-xs" onclick="agregarATextarea(\'taRecien\',\''+v.id+'\',\''+t+'\')">+Recién</button>'+
+            '</div>';
+        }).join('') + '</div>';
     });
-  };
+  }
 }
 auth.onAuthStateChanged(function(user){
   document.getElementById('splash').classList.add('hide');
