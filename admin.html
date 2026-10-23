@@ -10,25 +10,23 @@
   <p class="text-sm mb-6" style="color:#9A9A9A;">Solo para <strong style="color:#FFD700;">gachaplus905@gmail.com</strong> · Los cambios los ven <strong>todos</strong>.</p>
 
   <div class="card rounded-xl p-5 mb-5">
-    <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
-      <h3 class="font-bold text-lg">🔥 Top 10 · Tendencia</h3>
-      <span class="text-xs" style="color:#9A9A9A;">Formato: <code>ID|||Título</code> · uno por línea</span>
-    </div>
-    <textarea id="taTop10" rows="10" class="input-field w-full px-3 py-2 rounded-lg font-mono text-xs" style="resize:vertical;"></textarea>
+    <h3 class="font-bold text-lg mb-3">📊 Tus videos en vivo (selecciona con clic)</h3>
+    <div id="misVideosEnVivo"></div>
+  </div>
+
+  <div class="card rounded-xl p-5 mb-5">
+    <h3 class="font-bold text-lg mb-3">🔥 Top 10 · Tendencia</h3>
+    <textarea id="taTop10" rows="8" class="input-field w-full px-3 py-2 rounded-lg font-mono text-xs" style="resize:vertical;" placeholder="ID|||Título · uno por línea (o agrega con el botón +Top10 de arriba)"></textarea>
   </div>
 
   <div class="card rounded-xl p-5 mb-5">
     <h3 class="font-bold text-lg mb-3">🎬 Recomendados para ti</h3>
-    <textarea id="taRecom" rows="6" class="input-field w-full px-3 py-2 rounded-lg font-mono text-xs" style="resize:vertical;"></textarea>
+    <textarea id="taRecom" rows="5" class="input-field w-full px-3 py-2 rounded-lg font-mono text-xs" style="resize:vertical;"></textarea>
   </div>
 
   <div class="card rounded-xl p-5 mb-6">
-    <div class="flex items-center justify-between flex-wrap gap-3 mb-3">
-      <h3 class="font-bold text-lg">✨ Recién Lanzados</h3>
-      <button class="btn-secondary px-4 py-2 rounded-lg text-sm" id="btnSyncYT">🔄 Sincronizar con YouTube ahora</button>
-    </div>
-    <textarea id="taRecien" rows="8" class="input-field w-full px-3 py-2 rounded-lg font-mono text-xs" style="resize:vertical;"></textarea>
-    <p class="text-xs mt-2" style="color:#9A9A9A;">💡 Trae los últimos 15 videos. Sin plan Blaze no es automático: pulsa el botón al subir un video y luego Guardar.</p>
+    <h3 class="font-bold text-lg mb-3">✨ Recién Lanzados</h3>
+    <textarea id="taRecien" rows="6" class="input-field w-full px-3 py-2 rounded-lg font-mono text-xs" style="resize:vertical;"></textarea>
   </div>
 
   <button class="btn-primary px-6 py-3 rounded-lg text-lg" id="btnGuardarAdmin">💾 Guardar cambios (para todos)</button>
