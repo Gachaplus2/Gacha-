@@ -7,7 +7,7 @@
 <div id="rankLocked" class="card rounded-xl p-8 text-center scale-in">
   <div class="text-5xl mb-4">🔒</div>
   <h3 class="text-xl font-bold mb-2">Ranking Oficial protegido</h3>
-  <p class="mb-6" style="color:#9A9A9A;">Inicia sesión o regístrate gratis para ver el puntaje completo, las fotos de cada GachaTuber y los botones para visitar sus canales.</p>
+  <p class="mb-6" style="color:#9A9A9A;">Inicia sesión o regístrate gratis para ver el puntaje completo, las fotos de cada GachaTuber y los Top Videos con miniatura.</p>
   <div class="flex gap-3 justify-center flex-wrap">
     <button class="btn-primary px-5 py-2 rounded-lg" onclick="openAuthModal()">🔑 Iniciar Sesión</button>
     <button class="btn-secondary px-5 py-2 rounded-lg" onclick="switchAuthTab('register');openAuthModal()">📝 Registrarse</button>
@@ -20,4 +20,5 @@
     <div class="rank-tab" data-tab="videos" onclick="cambiarRankTab(this)">Top Videos</div>
   </div>
   <div id="rankList"></div>
+  <div id="topVideosLive" style="display:none;"></div>
 </div>
