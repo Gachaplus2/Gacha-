@@ -30,7 +30,7 @@ body{background:var(--bg);color:var(--text);font-family:'Bricolage Grotesque',sa
 @keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .fade-in{animation:fadeIn .5s ease forwards;}
 .scale-in{animation:fadeIn .4s ease forwards;}
-/* === LOGO: contorno nítido animado SOLO morado <-> dorado === */
+/* LOGO: contorno nítido SOLO morado <-> dorado */
 .logo-anim{font-weight:800;letter-spacing:.02em;color:transparent;-webkit-text-stroke:2.5px #A855F7;animation:strokeCycle 4s linear infinite;display:inline-block;}
 @keyframes strokeCycle{0%{-webkit-text-stroke-color:#A855F7}50%{-webkit-text-stroke-color:#FFD700}100%{-webkit-text-stroke-color:#A855F7}}
 #splash{position:fixed;inset:0;z-index:999;background:radial-gradient(circle at 50% 40%,#1C1810,#0A0A0A);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s ease,visibility .5s;}
@@ -174,7 +174,7 @@ function irAPagina(nombre){
   var c = document.getElementById('contenido');
   c.innerHTML = '<div class="text-center py-20"><span class="grad-gold text-2xl font-bold">Cargando...</span></div>';
   fetch(nombre + '.html').then(function(r){ if(!r.ok) throw new Error(); return r.text(); })
-    .then(function(html){ c.innerHTML = html; window.scrollTo(0,0); aplicarBloqueos(); cargarInicioDinamico(); })
+    .then(function(html){ c.innerHTML = html; window.scrollTo(0,0); aplicarBloqueos(); cargarInicioDinamico(); iniciarAdminPanel(); })
     .catch(function(){ c.innerHTML = '<div class="text-center py-20"><h2 class="text-2xl mb-4" style="color:#F87171;">Página no encontrada</h2><button onclick="irAPagina(\'inicio\')" class="btn-primary px-5 py-2 rounded-lg">Volver al Inicio</button></div>'; });
 }
 function showAuthAlert(msg){
@@ -376,6 +376,37 @@ window.sincronizarYouTube = function(cb){
     })
     .catch(function(err){ cb(err, null); });
 };
+// === PANEL DE ADMIN (fix: scripts inline no se ejecutan al inyectar) ===
+function iniciarAdminPanel(){
+  var panel = document.getElementById('adminPanel');
+  if(!panel) return;
+  var isAdmin = !!(currentUser && currentUser.email && currentUser.email.toLowerCase()===ADMIN_EMAIL);
+  if(!isAdmin){ document.getElementById('adminNoAuth').classList.remove('hidden'); return; }
+  panel.classList.remove('hidden');
+  if(!db) return;
+  db.collection('contenido').doc('inicio').get().then(function(d){
+    if(d && d.exists){
+      var x=d.data();
+      document.getElementById('taTop10').value = x.top10 || '';
+      document.getElementById('taRecom').value = x.recomendados || '';
+      document.getElementById('taRecien').value = x.recien || '';
+    }
+  });
+  document.getElementById('btnGuardarAdmin').onclick = function(){
+    var t10=document.getElementById('taTop10').value, rc=document.getElementById('taRecom').value, re=document.getElementById('taRecien').value;
+    guardarContenidoInicio(t10, rc, re).then(function(){
+      document.getElementById('adminMsg').textContent = '✅ ¡Guardado! Todos verán los cambios al recargar.';
+      setTimeout(function(){ document.getElementById('adminMsg').textContent=''; }, 6000);
+    }).catch(function(e){ alert('Error: '+e.message); });
+  };
+  document.getElementById('btnSyncYT').onclick = function(){
+    sincronizarYouTube(function(err,txt){
+      if(err){ alert('❌ Error al sincronizar: '+err); return; }
+      document.getElementById('taRecien').value = txt;
+      alert('✅ Sincronizado: '+txt.split('\n').filter(function(l){return l.trim();}).length+' videos. Revisa y pulsa Guardar.');
+    });
+  };
+}
 auth.onAuthStateChanged(function(user){
   document.getElementById('splash').classList.add('hide');
   currentUser = user;
