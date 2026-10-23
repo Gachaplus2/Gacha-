@@ -321,13 +321,118 @@ window.cambiarRankTab = function(el){
     renderRankList(currentRankData);if(currentRankData===RANK_TUBERS)actualizarAvataresEnVivo();actualizarAvataresEnVivo();
   }
 };
-window.refreshRanking = function(){
-  var now = new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  var rd = document.getElementById('rankDate'); if(rd) rd.textContent = now;
-  renderRankList(currentRankData);if(currentRankData===RANK_TUBERS)actualizarAvataresEnVivo();
-  if(db) db.collection('ranking').doc('snapshot').set({fecha:now,tubers:RANK_TUBERS,videos:RANK_VIDEOS,actualizadoPor:currentUser?currentUser.email:'admin'});
-  alert('✅ Ranking actualizado');
+
+// === RANKING SEMANAL (Spotify Charts) ===
+function fetchChannelStats(){
+  return Promise.all(RANK_HANDLES.map(function(h){
+    return ytFetch('https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forHandle='+h+'&key='+YT_API_KEY)
+      .then(function(d){
+        if(!d||!d.items||!d.items[0]) return null;
+        var it=d.items[0];
+        return {handle:h,name:it.snippet.title,totalViews:parseInt(it.statistics.viewCount||0),subs:parseInt(it.statistics.subscriberCount||0),avatar:it.snippet.thumbnails.default.url};
+      }).catch(function(){return null;});
+  })).then(function(arr){return arr.filter(Boolean);});
+}
+function fetchTopVideosStats(){
+  var all=[];
+  return Promise.all(RANK_HANDLES.map(function(h){
+    return ytFetch('https://www.googleapis.com/youtube/v3/channels?part=contentDetails&forHandle='+h+'&key='+YT_API_KEY)
+      .then(function(d){if(!d||!d.items||!d.items[0])return null;var upid=d.items[0].contentDetails.relatedPlaylists.uploads;return ytFetch('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=6&playlistId='+upid+'&key='+YT_API_KEY);})
+      .then(function(pl){if(!pl)return null;var ids=(pl.items||[]).map(function(i){return i.snippet.resourceId.videoId;});if(!ids.length)return null;return ytFetch('https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&id='+ids.join(',')+'&key='+YT_API_KEY);})
+      .then(function(vd){if(vd&&vd.items){(vd.items||[]).forEach(function(v){all.push({id:v.id,title:v.snippet.title,channel:v.snippet.channelTitle,totalViews:parseInt(v.statistics.viewCount||0)});});}})
+      .catch(function(){});
+  })).then(function(){return all;});
+}
+function computeWeeklyChannels(cur, prev){
+  var prevMap={};(prev||[]).forEach(function(c){prevMap[c.handle]=c;});
+  return cur.map(function(c){
+    var p=prevMap[c.handle];
+    var weekly = p ? Math.max(0, c.totalViews - p.totalViews) : 0;
+    return {name:c.name, weekly:weekly, totalViews:c.totalViews, subs:c.subs, avatar:c.avatar, canal:'https://youtube.com/@'+c.handle, init:c.name.charAt(0)};
+  }).sort(function(a,b){return b.weekly-a.weekly;});
+}
+function computeWeeklyVideos(cur, prev){
+  var prevMap={};(prev||[]).forEach(function(v){prevMap[v.id]=v;});
+  return cur.map(function(v){
+    var p=prevMap[v.id];
+    var weekly = p ? Math.max(0, v.totalViews - p.totalViews) : v.totalViews;
+    return {id:v.id, title:v.title, channel:v.channel, weekly:weekly, totalViews:v.totalViews};
+  }).sort(function(a,b){return b.weekly-a.weekly;}).slice(0,10);
+}
+function renderWeeklyChannels(list){
+  var el=document.getElementById('rankList');if(!el)return;
+  var max=list.length?list[0].weekly:1;
+  el.innerHTML=list.map(function(r,i){
+    var bg=i<3?RANK_MEDALS[i]:'#1F1F1F',tc=i<3?'#1A1400':'#F0EDE6';
+    var pct=max?Math.max(2,Math.round(r.weekly/max*100)):0;
+    var av=r.avatar?'<img class="rank-avatar" src="'+r.avatar+'" alt="">':'<div class="rank-avatar" style="display:flex;align-items:center;justify-content:center;font-weight:800;background:var(--surface2);color:var(--gold2);">'+r.init+'</div>';
+    return '<div class="rank-row scale-in" style="animation-delay:'+(i*40)+'ms;">'+
+      '<div class="rank-num" style="background:'+bg+';color:'+tc+';">'+(i+1)+'</div>'+av+
+      '<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+r.name+'</div>'+
+      '<div style="font-size:11px;color:var(--muted);">👥 '+fmtViews(r.subs)+' suscriptores · 📈 +'+fmtViews(r.weekly)+' esta semana</div></div>'+
+      '<div class="score-bar" style="max-width:120px;"><div class="score-fill" style="width:'+pct+'%;"></div></div>'+
+      '<a href="'+r.canal+'" target="_blank" rel="noopener" style="flex-shrink:0;font-size:11px;padding:5px 10px;border-radius:6px;text-decoration:none;background:rgba(232,185,35,.15);color:#FFD700;border:1px solid rgba(232,185,35,.4);">Visitar canal ↗</a></div>';
+  }).join('');
+}
+function renderWeeklyVideos(list){
+  var cont=document.getElementById('topVideosLive');if(!cont)return;
+  cont.innerHTML=list.map(function(v,i){
+    var bg=i<3?RANK_MEDALS[i]:'#1F1F1F',tc=i<3?'#1A1400':'#F0EDE6';
+    var t=v.title.replace(/'/g,"\'");
+    return '<div class="rank-row scale-in" style="animation-delay:'+(i*40)+'ms;cursor:pointer;" onclick="verVideo(\''+v.id+'\',\''+t+'\')">'+
+      '<div class="rank-num" style="background:'+bg+';color:'+tc+';">'+(i+1)+'</div>'+
+      '<img src="https://i.ytimg.com/vi/'+v.id+'/default.jpg" style="width:64px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid rgba(232,185,35,.3);">'+
+      '<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+v.title+'</div>'+
+      '<div style="font-size:11px;color:#9A9A9A;">'+v.channel+' · 📈 +'+fmtViews(v.weekly)+' esta semana</div></div>'+
+      '<div style="color:#FFD700;font-weight:700;">▶</div></div>';
+  }).join('');
+}
+window.refreshRanking=function(){
+  var btn=document.getElementById('refreshRankBtn');if(btn){btn.textContent='⏳ Actualizando…';btn.disabled=true;}
+  Promise.all([fetchChannelStats(), fetchTopVideosStats()]).then(function(res){
+    var channels=res[0], videos=res[1];
+    var now=new Date().toISOString();
+    var snap={fecha:now, channels:channels, videos:videos};
+    // Leer snapshot anterior
+    db.collection('ranking').doc('snapshot').get().then(function(d){
+      var prev = (d&&d.exists)?d.data():null;
+      var prevChannels = prev?prev.channels:null;
+      var prevVideos = prev?prev.videos:null;
+      // Guardar el actual como nuevo snapshot (con historial)
+      var history = (prev&&prev.history)?prev.history:[];
+      if(prev&&prev.fecha) history.push({fecha:prev.fecha, channels:prev.channels, videos:prev.videos});
+      if(history.length>8) history=history.slice(-8);
+      db.collection('ranking').doc('snapshot').set({fecha:now, channels:channels, videos:videos, history:history});
+      // Calcular ranking semanal
+      var weeklyChannels = computeWeeklyChannels(channels, prevChannels);
+      var weeklyVideos = computeWeeklyVideos(videos, prevVideos);
+      renderWeeklyChannels(weeklyChannels);
+      renderWeeklyVideos(weeklyVideos);
+      var rd=document.getElementById('rankDate');if(rd)rd.textContent=new Date().toLocaleDateString('es-CR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      if(btn){btn.textContent='🔄 Actualizar ranking';btn.disabled=false;}
+      if(!prevChannels){alert('✅ Primera captura guardada. Pulsa de nuevo la próxima semana para ver el ranking semanal.');}
+      else{alert('✅ Ranking semanal actualizado. Se comparó con la captura anterior.');}
+    });
+  }).catch(function(e){
+    if(btn){btn.textContent='🔄 Actualizar ranking';btn.disabled=false;}
+    alert('❌ Error al actualizar. Revisa que la API key tenga el patrón gachaplus2.github.io/*');
+  });
 };
+function cargarRankingGuardado(){
+  if(!db)return;
+  db.collection('ranking').doc('snapshot').get().then(function(d){
+    if(!d||!d.exists)return;
+    var cur=d.data();
+    var prev = (cur.history&&cur.history.length)?cur.history[cur.history.length-1]:null;
+    if(prev){
+      var wc=computeWeeklyChannels(cur.channels, prev.channels);
+      var wv=computeWeeklyVideos(cur.videos, prev.videos);
+      renderWeeklyChannels(wc);
+      renderWeeklyVideos(wv);
+    }
+  }).catch(function(){});
+}
+
 
 function aplicarBloqueos(){
   document.querySelectorAll('[data-video]').forEach(function(el){
